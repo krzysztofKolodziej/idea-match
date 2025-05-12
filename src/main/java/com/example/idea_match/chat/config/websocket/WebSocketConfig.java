@@ -1,4 +1,4 @@
-package com.example.idea_match.config;
+package com.example.idea_match.chat.config.websocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

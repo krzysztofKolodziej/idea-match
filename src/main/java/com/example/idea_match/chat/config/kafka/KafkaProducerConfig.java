@@ -1,4 +1,4 @@
-package com.example.idea_match.config.kafka;
+package com.example.idea_match.chat.config.kafka;
 
 import com.example.idea_match.chat.model.Message;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -17,7 +17,7 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    @Value(value = "${kafka.bootstrap-servers:kafka:9092}")
+    @Value(value = "${kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
     @Bean
