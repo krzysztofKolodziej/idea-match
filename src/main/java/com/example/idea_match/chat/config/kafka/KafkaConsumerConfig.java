@@ -1,4 +1,4 @@
-package com.example.idea_match.config.kafka;
+package com.example.idea_match.chat.config.kafka;
 
 import com.example.idea_match.chat.model.Message;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
