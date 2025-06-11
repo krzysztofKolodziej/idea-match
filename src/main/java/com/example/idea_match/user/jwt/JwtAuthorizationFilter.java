@@ -3,7 +3,8 @@ package com.example.idea_match.user.jwt;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.idea_match.user.config.CustomUserDetailsService;
-import com.example.idea_match.user.exceptions.JwtTokenException;
+import com.example.idea_match.user.exceptions.BlackListedTokenException;
+import com.example.idea_match.user.exceptions.InvalidJwtTokenException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,7 +53,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         String jwtToken = token.replace(TOKEN_PREFIX, "");
 
         if (redisTokenBlacklistService.isTokenBlacklisted(jwtToken)) {
-            throw new JwtTokenException("Token is blacklisted");
+            throw new BlackListedTokenException("Token is blacklisted");
         }
 
         try {
@@ -60,7 +61,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         } catch (JWTVerificationException ex) {
-            throw new JwtTokenException("Invalid JWT token: " + ex);
+            throw new InvalidJwtTokenException("Invalid JWT token: " + ex);
         }
     }
 }
