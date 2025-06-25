@@ -1,10 +1,12 @@
 package com.example.idea_match.user.service.registration;
 
 import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
 import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import com.example.idea_match.user.service.mapper.UserMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,11 +21,11 @@ public class UserRegistrationService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final HandlerUUIDToken handlerUUIDToken;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public User userRegistration(AddUserCommand addUserCommand) {
+    public void userRegistration(AddUserCommand addUserCommand) {
         if (userRepository.existsByUsernameOrEmailOrPhoneNumber(
                 addUserCommand.username(),
                 addUserCommand.email(),
@@ -34,9 +36,11 @@ public class UserRegistrationService {
 
         User mappedUser = userMapper.dtoToEntity(addUserCommand);
         User userWithEncoderPassword = setPasswordEncoder(mappedUser);
-        User finalUser = handlerUUIDToken.createVerificationToken(userWithEncoderPassword, LocalDateTime.now().plusHours(24));
+        User finalUser = createVerificationToken(userWithEncoderPassword, LocalDateTime.now().plusHours(24));
 
-        return userRepository.save(finalUser);
+        userRepository.save(finalUser);
+        
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(this, finalUser));
     }
 
     private User setPasswordEncoder(User user) {
@@ -45,4 +49,10 @@ public class UserRegistrationService {
         return user;
     }
 
+    private User createVerificationToken(User user, LocalDateTime expirationTime) {
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        user.setTokenExpirationTime(expirationTime);
+        return user;
+    }
 }

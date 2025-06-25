@@ -15,8 +15,8 @@ public class JwtUtils {
     private final String secret;
     private final long expirationTime;
 
-    public JwtUtils(@Value("${jwt.secret") String secret,
-                    @Value("${jwt.expirationTime") long expirationTime) {
+    public JwtUtils(@Value("${jwt.secret}") String secret,
+                    @Value("${jwt.expirationTime}") long expirationTime) {
         this.secret = secret;
         this.expirationTime = expirationTime;
     }
