@@ -44,23 +44,22 @@ public class User {
 
     @Column(nullable = false)
     private String password;
-//
+
 //    @OneToMany(mappedBy = "owner")
 //    private List<?> ownedProjects = new ArrayList<>();
 //
 //    @ManyToMany(mappedBy = "members")
 //    private List<?> joinedProjects = new ArrayList<>();
 
-//    private String verificationToken;
-//
-    @Column(nullable = false)
-    private boolean enabled = true;
+    private String verificationToken;
 
     @Column(nullable = false)
     private LocalDateTime tokenExpirationTime;
 
-    @PrePersist
-    private void setLocalDateTime() {
-        this.tokenExpirationTime = LocalDateTime.now();
-    }
+    @Column(nullable = false)
+    private boolean enabled;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 }
