@@ -23,10 +23,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @Testcontainers
 @Transactional
+@ActiveProfiles("test")
 class UserRegistrationIntegrationTest {
 
     @Container

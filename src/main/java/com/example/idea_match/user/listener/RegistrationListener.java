@@ -2,7 +2,7 @@ package com.example.idea_match.user.listener;
 
 import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
 import com.example.idea_match.user.model.User;
-import com.example.idea_match.user.service.EmailService;
+import com.example.idea_match.user.service.EmailServiceInterface;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RegistrationListener {
     
-    private final EmailService emailService;
+    private final EmailServiceInterface emailService;
     
     @EventListener
     @Async
