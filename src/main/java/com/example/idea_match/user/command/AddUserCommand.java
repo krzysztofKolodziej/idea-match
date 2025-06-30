@@ -1,16 +1,18 @@
 package com.example.idea_match.user.command;
 
+import com.example.idea_match.user.command.validation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public record AddUserCommand(
         @NotBlank String firstName,
-        @NotBlank String lastname,
+        @NotBlank String lastName,
         @NotBlank String username,
         @NotBlank @Email String email,
-        @NotBlank String phoneNumber,
+        @NotBlank @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format") String phoneNumber,
         String location,
         String aboutMe,
-        @NotBlank String password
+        @ValidPassword String password
 ) {
 }

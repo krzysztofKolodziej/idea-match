@@ -49,4 +49,11 @@ public class UserExceptionHandler {
                 .body(new ErrorRespond(HttpStatus.BAD_REQUEST, "Email service error: " + e.getMessage()));
     }
 
+    @ExceptionHandler(EmailSendingException.class)
+    public ResponseEntity<ErrorRespond> handleEmailSending(EmailSendingException ex) {
+        log.error("Email sending failed: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorRespond(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to send email: " + ex.getMessage()));
+    }
+
 }

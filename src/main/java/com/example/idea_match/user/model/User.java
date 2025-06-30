@@ -53,11 +53,12 @@ public class User {
 
     private String verificationToken;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime tokenExpirationTime;
 
     @Column(nullable = false)
-    private boolean enabled;
+    @Builder.Default
+    private boolean enabled = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -16,11 +16,13 @@ public class EmailService implements EmailServiceInterface {
 
     private final SesClient sesClient;
     private final String fromEmail;
+    private final String verificationUrl;
 
     public EmailService(@Value("${aws.ses.access-key}") String accessKey,
                        @Value("${aws.ses.secret-key}") String secretKey,
                        @Value("${aws.ses.region}") String region,
-                       @Value("${aws.ses.from-email}") String fromEmail) {
+                       @Value("${aws.ses.from-email}") String fromEmail,
+                       @Value("${app.verification.url}") String verificationUrl) {
         
         this.sesClient = SesClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(
@@ -29,6 +31,7 @@ public class EmailService implements EmailServiceInterface {
                 .build();
         
         this.fromEmail = fromEmail;
+        this.verificationUrl = verificationUrl;
     }
 
     public void sendRegistrationEmail(String recipientEmail, String username, String verificationToken) {
@@ -62,15 +65,21 @@ public class EmailService implements EmailServiceInterface {
 
     private String buildRegistrationEmailBody(String username, String verificationToken) {
         return String.format(
-            "Hello %s!\n\n" +
-            "Thank you for registering with Idea Match.\n\n" +
-            "To activate your account, please click the link below:\n" +
-            "http://localhost:8080/api/users/verify?token=%s\n\n" +
-            "This link is valid for 24 hours.\n\n" +
-            "If you did not register for our service, please ignore this message.\n\n" +
-            "Best regards,\n" +
-            "Idea Match Team",
-            username, verificationToken
+                """
+                        Hello %s!
+                        
+                        Thank you for registering with Idea Match.
+                        
+                        To activate your account, please click the link below:
+                        %s/verify-email?token=%s
+                        
+                        This link is valid for 24 hours.
+                        
+                        If you did not register for our service, please ignore this message.
+                        
+                        Best regards,
+                        Idea Match Team""",
+            username, verificationUrl, verificationToken
         );
     }
 }

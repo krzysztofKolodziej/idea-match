@@ -5,6 +5,7 @@ import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
 import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
+import com.example.idea_match.user.service.HandlerVerificationToken;
 import com.example.idea_match.user.service.mapper.UserMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import jakarta.transaction.Transactional;
@@ -23,6 +24,7 @@ public class UserRegistrationService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final HandlerVerificationToken handlerVerificationToken;
 
     @Transactional
     public void userRegistration(AddUserCommand addUserCommand) {
@@ -36,7 +38,8 @@ public class UserRegistrationService {
 
         User mappedUser = userMapper.dtoToEntity(addUserCommand);
         User userWithEncoderPassword = setPasswordEncoder(mappedUser);
-        User finalUser = createVerificationToken(userWithEncoderPassword, LocalDateTime.now().plusHours(24));
+        User finalUser = handlerVerificationToken
+                .createVerificationToken(userWithEncoderPassword, LocalDateTime.now().plusHours(24));
 
         userRepository.save(finalUser);
         
@@ -49,10 +52,4 @@ public class UserRegistrationService {
         return user;
     }
 
-    private User createVerificationToken(User user, LocalDateTime expirationTime) {
-        String token = UUID.randomUUID().toString();
-        user.setVerificationToken(token);
-        user.setTokenExpirationTime(expirationTime);
-        return user;
-    }
 }
