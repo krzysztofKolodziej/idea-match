@@ -67,7 +67,7 @@ class UserRegistrationControllerIntegrationTest {
                 "+48123456789",
                 "Warsaw",
                 "Software developer",
-                "password123"
+                "Password123!"
         );
 
         headers = new HttpHeaders();
@@ -93,12 +93,12 @@ class UserRegistrationControllerIntegrationTest {
 
         User user = savedUser.get();
         assertThat(user.getFirstName()).isEqualTo("John");
-        assertThat(user.getLastname()).isEqualTo("Doe");
+        assertThat(user.getLastName()).isEqualTo("Doe");
         assertThat(user.getEmail()).isEqualTo("k.kolodziej2212@gmail.com");
         assertThat(user.getPhoneNumber()).isEqualTo("+48123456789");
         assertThat(user.isEnabled()).isFalse();
         assertThat(user.getVerificationToken()).isNotNull();
-        assertThat(user.getPassword()).isNotEqualTo("password123"); // Should be encoded
+        assertThat(user.getPassword()).isNotEqualTo("Password123!"); // Should be encoded
     }
 
     @Test
@@ -106,7 +106,7 @@ class UserRegistrationControllerIntegrationTest {
         // given - create existing user
         userRepository.save(User.builder()
                 .firstName("Jane")
-                .lastname("Smith")
+                .lastName("Smith")
                 .username("johndoe") // same username
                 .email("k.kolodziej2212@gmail.com")
                 .phoneNumber("+48987654321")
@@ -133,7 +133,7 @@ class UserRegistrationControllerIntegrationTest {
         // given
         userRepository.save(User.builder()
                 .firstName("Jane")
-                .lastname("Smith")
+                .lastName("Smith")
                 .username("janesmith")
                 .email("k.kolodziej2212@gmail.com") // same email
                 .phoneNumber("+48987654321")
@@ -166,7 +166,7 @@ class UserRegistrationControllerIntegrationTest {
                 "+48123456789",
                 "Warsaw",
                 "Software developer",
-                "password123"
+                "Password123!"
         );
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(invalidCommand, headers);
@@ -216,7 +216,7 @@ class UserRegistrationControllerIntegrationTest {
                 "+48987654321",
                 "Krakow",
                 "Designer",
-                "password456"
+                "Password456!"
         );
 
         String url = "http://localhost:" + port + "/registration";
@@ -266,10 +266,10 @@ class UserRegistrationControllerIntegrationTest {
                 "Doe",
                 "johndoe",
                 "idea.match.contact@gmail.com",
-                "+1-555-123-4567",
+                "+15551234567",
                 "Warsaw",
                 "Software developer",
-                "password123"
+                "Password123!"
         );
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validPhoneCommand, headers);
@@ -283,7 +283,7 @@ class UserRegistrationControllerIntegrationTest {
         
         Optional<User> savedUser = userRepository.findByUsername("johndoe");
         assertThat(savedUser).isPresent();
-        assertThat(savedUser.get().getPhoneNumber()).isEqualTo("+1-555-123-4567");
+        assertThat(savedUser.get().getPhoneNumber()).isEqualTo("+15551234567");
     }
 
     @Test
@@ -302,7 +302,7 @@ class UserRegistrationControllerIntegrationTest {
         assertThat(savedUser).isPresent();
         
         User user = savedUser.get();
-        assertThat(user.getPassword()).isNotEqualTo("password123");
+        assertThat(user.getPassword()).isNotEqualTo("Password123!");
         assertThat(user.getPassword()).startsWith("{bcrypt}$2a$");
     }
 

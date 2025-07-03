@@ -25,9 +25,9 @@ public class UserRegistrationController {
     @GetMapping("/verify-email")
     public ResponseEntity<String> verifyEmailRegistration(@RequestParam String token) {
         String result = handlerVerificationToken.validateVerificationToken(token);
-        if (result.equals("valid")) {
+        if ("valid".equals(result)) {
             return ResponseEntity.status(HttpStatus.FOUND).body("Your account has been verified successfully.");
-        } else if (result.equals("expired")) {
+        } else if ("expired".equals(result)) {
             return ResponseEntity.status(HttpStatus.GONE).body("Verification token has been expired.");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid verification token.");

@@ -9,5 +9,6 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
 
     @Mapping(target = "role", constant = "USER") // Default role set to USER
+    @Mapping(target = "lastName", source = "lastName")
     User dtoToEntity(AddUserCommand addUserCommand);
 }

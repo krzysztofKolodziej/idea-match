@@ -25,7 +25,7 @@ public class User {
     private String firstName;
 
     @Column(nullable = false)
-    private String lastname;
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -53,7 +53,6 @@ public class User {
 
     private String verificationToken;
 
-    @Column(nullable = true)
     private LocalDateTime tokenExpirationTime;
 
     @Column(nullable = false)

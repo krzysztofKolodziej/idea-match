@@ -84,7 +84,7 @@ class UserRegistrationIntegrationTest {
 
         User user = savedUser.get();
         assertThat(user.getFirstName()).isEqualTo("John");
-        assertThat(user.getLastname()).isEqualTo("Doe");
+        assertThat(user.getLastName()).isEqualTo("Doe");
         assertThat(user.getUsername()).isEqualTo("johndoe");
         assertThat(user.getEmail()).isEqualTo("k.kolodziej2212@gmail.com");
         assertThat(user.getPhoneNumber()).isEqualTo("+48123456789");
@@ -111,7 +111,7 @@ class UserRegistrationIntegrationTest {
         // given
         User existingUser = User.builder()
                 .firstName("Jane")
-                .lastname("Smith")
+                .lastName("Smith")
                 .username("johndoe") // same username
                 .email("k.kolodziej2212@gmail.com")
                 .phoneNumber("+48987654321")
@@ -138,7 +138,7 @@ class UserRegistrationIntegrationTest {
         // given
         User existingUser = User.builder()
                 .firstName("Jane")
-                .lastname("Smith")
+                .lastName("Smith")
                 .username("janesmith")
                 .email("k.kolodziej2212@gmail.com") // same email
                 .phoneNumber("+48987654321")
@@ -164,7 +164,7 @@ class UserRegistrationIntegrationTest {
         // given
         User existingUser = User.builder()
                 .firstName("Jane")
-                .lastname("Smith")
+                .lastName("Smith")
                 .username("janesmith")
                 .email("k.kolodziej2212@gmail.com")
                 .phoneNumber("+48123456789") // same phone number

@@ -10,7 +10,7 @@ public record AddUserCommand(
         @NotBlank String lastName,
         @NotBlank String username,
         @NotBlank @Email String email,
-        @NotBlank @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format") String phoneNumber,
+        @Pattern(regexp = "^\\+?[1-9]\\d{1,15}$", message = "Invalid phone number format") @NotBlank String phoneNumber,
         String location,
         String aboutMe,
         @ValidPassword String password
