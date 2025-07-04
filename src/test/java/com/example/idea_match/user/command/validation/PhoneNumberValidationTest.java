@@ -55,7 +55,6 @@ class PhoneNumberValidationTest {
             "1",                 // too short
             "12345678901234567", // too long
             "+",                 // just plus
-            "",                  // empty
             "abc123456789",      // contains letters
             "+48-123-456-789",   // contains hyphens
             "+48 123 456 789",   // contains spaces

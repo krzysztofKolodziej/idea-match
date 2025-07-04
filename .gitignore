@@ -34,3 +34,6 @@ build/
 
 ### Kafka ###
 kafka-logs/
+
+settings.local.json
+.claude/settings.local.json

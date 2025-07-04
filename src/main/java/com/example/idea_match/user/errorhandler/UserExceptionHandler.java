@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import software.amazon.awssdk.services.ses.model.MessageRejectedException;
 import software.amazon.awssdk.services.ses.model.SesException;
 
+import javax.naming.AuthenticationException;
+
 @RestControllerAdvice(basePackages = "com.example.idea_match.user")
 @Slf4j
 public class UserExceptionHandler {
@@ -55,5 +57,12 @@ public class UserExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorRespond(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to send email: " + ex.getMessage()));
     }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> handleAuthenticationException(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body("Invalid credentials");
+    }
+
 
 }

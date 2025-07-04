@@ -2,7 +2,7 @@ package com.example.idea_match.user.controller;
 
 import com.example.idea_match.user.command.AddUserCommand;
 import com.example.idea_match.user.service.HandlerVerificationToken;
-import com.example.idea_match.user.service.registration.UserRegistrationService;
+import com.example.idea_match.user.service.UserRegistrationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

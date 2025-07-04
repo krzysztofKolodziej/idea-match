@@ -1,12 +1,10 @@
-package com.example.idea_match.user.service.registration;
+package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.command.AddUserCommand;
 import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
 import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
-import com.example.idea_match.user.service.HandlerVerificationToken;
-import com.example.idea_match.user.service.mapper.UserMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -14,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @AllArgsConstructor
 @Service

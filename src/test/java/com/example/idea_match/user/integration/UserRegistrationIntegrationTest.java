@@ -5,7 +5,7 @@ import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
-import com.example.idea_match.user.service.registration.UserRegistrationService;
+import com.example.idea_match.user.service.UserRegistrationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

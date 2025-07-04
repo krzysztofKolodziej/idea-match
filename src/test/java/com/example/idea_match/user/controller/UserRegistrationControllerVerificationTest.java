@@ -1,7 +1,7 @@
 package com.example.idea_match.user.controller;
 
 import com.example.idea_match.user.service.HandlerVerificationToken;
-import com.example.idea_match.user.service.registration.UserRegistrationService;
+import com.example.idea_match.user.service.UserRegistrationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
