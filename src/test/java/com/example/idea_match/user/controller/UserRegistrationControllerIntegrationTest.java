@@ -78,14 +78,14 @@ class UserRegistrationControllerIntegrationTest {
     void shouldRegisterUserSuccessfully() {
         // given
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo("User successfully added");
+        assertThat(response.getBody()).isNull();
 
         // Verify user is saved in database
         Optional<User> savedUser = userRepository.findByUsername("johndoe");
@@ -118,10 +118,10 @@ class UserRegistrationControllerIntegrationTest {
                 .build());
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -145,10 +145,10 @@ class UserRegistrationControllerIntegrationTest {
                 .build());
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -170,10 +170,10 @@ class UserRegistrationControllerIntegrationTest {
         );
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(invalidCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -195,10 +195,10 @@ class UserRegistrationControllerIntegrationTest {
         );
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(invalidCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -219,7 +219,7 @@ class UserRegistrationControllerIntegrationTest {
                 "Password456!"
         );
 
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when - register first user
         HttpEntity<AddUserCommand> firstRequest = new HttpEntity<>(validCommand, headers);
@@ -243,12 +243,12 @@ class UserRegistrationControllerIntegrationTest {
         // given
         HttpHeaders xmlHeaders = new HttpHeaders();
         xmlHeaders.setContentType(MediaType.APPLICATION_XML);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when & then - TestRestTemplate throws exception when content type is not supported
         try {
             HttpEntity<String> request = new HttpEntity<>("{\"test\":\"data\"}", xmlHeaders);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         } catch (org.springframework.web.client.RestClientException e) {
             // Expected exception for unsupported content type
@@ -273,10 +273,10 @@ class UserRegistrationControllerIntegrationTest {
         );
 
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validPhoneCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -290,10 +290,10 @@ class UserRegistrationControllerIntegrationTest {
     void shouldEncodePasswordProperly() {
         // given
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -310,10 +310,10 @@ class UserRegistrationControllerIntegrationTest {
     void shouldGenerateVerificationTokenAndExpirationTime() {
         // given
         HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
-        String url = "http://localhost:" + port + "/registration";
+        String url = "http://localhost:" + port + "/api/registration";
 
         // when
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
 
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);

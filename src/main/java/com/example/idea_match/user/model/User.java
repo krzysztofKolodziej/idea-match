@@ -55,6 +55,10 @@ public class User {
 
     private LocalDateTime tokenExpirationTime;
 
+    private String passwordResetToken;
+
+    private LocalDateTime passwordResetTokenExpiry;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean enabled = false;

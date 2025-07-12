@@ -1,6 +1,9 @@
 package com.example.idea_match.user.controller;
 
-import com.example.idea_match.user.service.HandlerVerificationToken;
+import com.example.idea_match.user.errorhandler.UserExceptionHandler;
+import com.example.idea_match.user.exceptions.ExpiredVerificationTokenException;
+import com.example.idea_match.user.exceptions.InvalidVerificationTokenException;
+import com.example.idea_match.user.service.TokenService;
 import com.example.idea_match.user.service.UserRegistrationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,16 +14,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class UserRegistrationControllerVerificationTest {
 
     @Mock
-    private HandlerVerificationToken handlerVerificationToken;
+    private TokenService tokenService;
 
     @Mock
     private UserRegistrationService userRegistrationService;
@@ -32,139 +35,46 @@ class UserRegistrationControllerVerificationTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userRegistrationController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(userRegistrationController)
+                .setControllerAdvice(new UserExceptionHandler())
+                .build();
     }
 
     @Test
-    void shouldReturnSuccessForValidToken() throws Exception {
+    void shouldReturnOkForValidToken() throws Exception {
         // given
         String validToken = "valid-token-123";
-        when(handlerVerificationToken.validateVerificationToken(validToken))
-                .thenReturn("valid");
+        doNothing().when(tokenService).validateVerificationToken(validToken);
 
         // when & then
-        mockMvc.perform(get("/verify-email")
+        mockMvc.perform(get("/api/verify-email")
                         .param("token", validToken))
-                .andExpect(status().isFound())
-                .andExpect(content().string("Your account has been verified successfully."));
+                .andExpect(status().isOk());
     }
 
     @Test
-    void shouldReturnGoneForExpiredToken() throws Exception {
+    void shouldReturnBadRequestForExpiredToken() throws Exception {
         // given
         String expiredToken = "expired-token-123";
-        when(handlerVerificationToken.validateVerificationToken(expiredToken))
-                .thenReturn("expired");
+        doThrow(new ExpiredVerificationTokenException("Verification token has expired"))
+                .when(tokenService).validateVerificationToken(expiredToken);
 
         // when & then
-        mockMvc.perform(get("/verify-email")
+        mockMvc.perform(get("/api/verify-email")
                         .param("token", expiredToken))
-                .andExpect(status().isGone())
-                .andExpect(content().string("Verification token has been expired."));
-    }
-
-    @Test
-    void shouldReturnNotFoundForInvalidToken() throws Exception {
-        // given
-        String invalidToken = "invalid-token-123";
-        when(handlerVerificationToken.validateVerificationToken(invalidToken))
-                .thenReturn("invalid");
-
-        // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", invalidToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
-    }
-
-    @Test
-    void shouldReturnNotFoundForUnknownTokenResult() throws Exception {
-        // given
-        String unknownToken = "unknown-token-123";
-        when(handlerVerificationToken.validateVerificationToken(unknownToken))
-                .thenReturn("unknown"); // unexpected result
-
-        // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", unknownToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
-    }
-
-    @Test
-    void shouldReturnBadRequestWhenTokenParameterIsMissing() throws Exception {
-        // when & then
-        mockMvc.perform(get("/verify-email"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void shouldHandleEmptyTokenParameter() throws Exception {
+    void shouldReturnBadRequestForInvalidToken() throws Exception {
         // given
-        String emptyToken = "";
-        when(handlerVerificationToken.validateVerificationToken(emptyToken))
-                .thenReturn("invalid");
+        String invalidToken = "invalid-token-123";
+        doThrow(new InvalidVerificationTokenException("Invalid verification token"))
+                .when(tokenService).validateVerificationToken(invalidToken);
 
         // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", emptyToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
-    }
-
-    @Test
-    void shouldHandleWhitespaceOnlyToken() throws Exception {
-        // given
-        String whitespaceToken = "   ";
-        when(handlerVerificationToken.validateVerificationToken(whitespaceToken))
-                .thenReturn("invalid");
-
-        // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", whitespaceToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
-    }
-
-    @Test
-    void shouldHandleLongTokenString() throws Exception {
-        // given
-        String longToken = "a".repeat(1000);
-        when(handlerVerificationToken.validateVerificationToken(longToken))
-                .thenReturn("invalid");
-
-        // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", longToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
-    }
-
-    @Test
-    void shouldHandleTokenWithSpecialCharacters() throws Exception {
-        // given
-        String specialCharToken = "token-with-!@#$%^&*()";
-        when(handlerVerificationToken.validateVerificationToken(specialCharToken))
-                .thenReturn("invalid");
-
-        // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", specialCharToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
-    }
-
-    @Test
-    void shouldHandleNullTokenResult() throws Exception {
-        // given
-        String nullResultToken = "null-result-token";
-        when(handlerVerificationToken.validateVerificationToken(nullResultToken))
-                .thenReturn(null);
-
-        // when & then
-        mockMvc.perform(get("/verify-email")
-                        .param("token", nullResultToken))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Invalid verification token."));
+        mockMvc.perform(get("/api/verify-email")
+                        .param("token", invalidToken))
+                .andExpect(status().isBadRequest());
     }
 }

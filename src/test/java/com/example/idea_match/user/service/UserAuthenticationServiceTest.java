@@ -1,7 +1,7 @@
 package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.config.CustomUserDetails;
-import com.example.idea_match.user.dto.LoginRequestDto;
+import com.example.idea_match.user.dto.LoginRequest;
 import com.example.idea_match.user.jwt.JwtTokenProvider;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
@@ -48,13 +48,13 @@ class UserAuthenticationServiceTest {
     @InjectMocks
     private UserAuthenticationService userAuthenticationService;
 
-    private LoginRequestDto loginRequest;
+    private LoginRequest loginRequest;
     private User testUser;
     private CustomUserDetails customUserDetails;
 
     @BeforeEach
     void setUp() {
-        loginRequest = new LoginRequestDto("johndoe", "password123");
+        loginRequest = new LoginRequest("johndoe", "password123");
         
         testUser = User.builder()
                 .id(1L)
@@ -103,7 +103,7 @@ class UserAuthenticationServiceTest {
     @Test
     void shouldAuthenticateWithEmail() {
         // given
-        LoginRequestDto emailLoginRequest = new LoginRequestDto("john@example.com", "password123");
+        LoginRequest emailLoginRequest = new LoginRequest("john@example.com", "password123");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
@@ -194,7 +194,7 @@ class UserAuthenticationServiceTest {
                 .build();
         
         CustomUserDetails adminUserDetails = new CustomUserDetails(adminUser);
-        LoginRequestDto adminLoginRequest = new LoginRequestDto("admin", "adminPassword");
+        LoginRequest adminLoginRequest = new LoginRequest("admin", "adminPassword");
         
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
@@ -231,7 +231,7 @@ class UserAuthenticationServiceTest {
     @Test
     void shouldCreateAuthenticationTokenWithCorrectParameters() {
         // given
-        LoginRequestDto customLoginRequest = new LoginRequestDto("testuser", "testpass");
+        LoginRequest customLoginRequest = new LoginRequest("testuser", "testpass");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);

@@ -3,7 +3,9 @@ package com.example.idea_match.user.errorhandler;
 import com.example.idea_match.shared.error.ErrorRespond;
 import com.example.idea_match.user.exceptions.BlackListedTokenException;
 import com.example.idea_match.user.exceptions.EmailSendingException;
+import com.example.idea_match.user.exceptions.ExpiredVerificationTokenException;
 import com.example.idea_match.user.exceptions.InvalidJwtTokenException;
+import com.example.idea_match.user.exceptions.InvalidVerificationTokenException;
 import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -64,5 +66,15 @@ public class UserExceptionHandler {
                 .body("Invalid credentials");
     }
 
+    @ExceptionHandler(InvalidVerificationTokenException.class)
+    public ResponseEntity<ErrorRespond> handleInvalidVerificationToken(InvalidVerificationTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorRespond(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    }
 
+    @ExceptionHandler(ExpiredVerificationTokenException.class)
+    public ResponseEntity<ErrorRespond> handleExpiredVerificationToken(ExpiredVerificationTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorRespond(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    }
 }

@@ -6,7 +6,7 @@ import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
-import com.example.idea_match.user.service.HandlerVerificationToken;
+import com.example.idea_match.user.service.TokenService;
 import com.example.idea_match.user.service.UserRegistrationService;
 import com.example.idea_match.user.service.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class UserRegistrationServiceTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private HandlerVerificationToken handlerVerificationToken;
+    private TokenService tokenService;
 
     @InjectMocks
     private UserRegistrationService userRegistrationService;
@@ -88,14 +88,14 @@ class UserRegistrationServiceTest {
         )).thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
-        when(handlerVerificationToken.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
                 .thenReturn(mappedUser);
 
         // when
         userRegistrationService.userRegistration(validCommand);
 
         // then
-        verify(handlerVerificationToken).createVerificationToken(any(User.class), any(LocalDateTime.class));
+        verify(tokenService).createVerificationToken(any(User.class), any(LocalDateTime.class));
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         
@@ -131,7 +131,7 @@ class UserRegistrationServiceTest {
                 .thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode("password123")).thenReturn("super-secure-hash");
-        when(handlerVerificationToken.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
                 .thenReturn(mappedUser);
 
         // when
@@ -154,14 +154,14 @@ class UserRegistrationServiceTest {
         User userWithToken = User.builder()
                 .verificationToken("test-token-uuid")
                 .build();
-        when(handlerVerificationToken.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
                 .thenReturn(userWithToken);
 
         // when
         userRegistrationService.userRegistration(validCommand);
 
         // then
-        verify(handlerVerificationToken).createVerificationToken(any(User.class), any(LocalDateTime.class));
+        verify(tokenService).createVerificationToken(any(User.class), any(LocalDateTime.class));
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         
@@ -177,8 +177,21 @@ class UserRegistrationServiceTest {
                 .thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(handlerVerificationToken.createVerificationToken(any(User.class), any(LocalDateTime.class)))
-                .thenReturn(mappedUser);
+        User userWithToken = User.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john@example.com")
+                .phoneNumber("+48123456789")
+                .location("Warsaw")
+                .aboutMe("Software developer")
+                .password("encodedPassword")
+                .enabled(false)
+                .role(Role.USER)
+                .verificationToken("test-token-uuid")
+                .build();
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(userWithToken);
 
         // when
         userRegistrationService.userRegistration(validCommand);
@@ -188,9 +201,10 @@ class UserRegistrationServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         
         OnRegistrationCompleteEvent event = eventCaptor.getValue();
-        assertThat(event.getUser()).isNotNull();
-        assertThat(event.getUser().getUsername()).isEqualTo("johndoe");
-        assertThat(event.getSource()).isEqualTo(userRegistrationService);
+        assertThat(event.email()).isEqualTo("john@example.com");
+        assertThat(event.username()).isEqualTo("johndoe");
+        assertThat(event.verificationToken()).isNotNull();
+        assertThat(event.registeredAt()).isNotNull();
     }
 
     @Test
@@ -204,14 +218,14 @@ class UserRegistrationServiceTest {
         User userWithToken = User.builder()
                 .tokenExpirationTime(LocalDateTime.now().plusHours(24))
                 .build();
-        when(handlerVerificationToken.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
                 .thenReturn(userWithToken);
 
         // when
         userRegistrationService.userRegistration(validCommand);
 
         // then
-        verify(handlerVerificationToken).createVerificationToken(any(User.class), any(LocalDateTime.class));
+        verify(tokenService).createVerificationToken(any(User.class), any(LocalDateTime.class));
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         

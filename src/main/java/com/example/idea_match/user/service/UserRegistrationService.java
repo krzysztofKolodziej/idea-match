@@ -21,7 +21,7 @@ public class UserRegistrationService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
-    private final HandlerVerificationToken handlerVerificationToken;
+    private final TokenService tokenService;
 
     @Transactional
     public void userRegistration(AddUserCommand addUserCommand) {
@@ -35,12 +35,17 @@ public class UserRegistrationService {
 
         User mappedUser = userMapper.dtoToEntity(addUserCommand);
         User userWithEncoderPassword = setPasswordEncoder(mappedUser);
-        User finalUser = handlerVerificationToken
+        User finalUser = tokenService
                 .createVerificationToken(userWithEncoderPassword, LocalDateTime.now().plusHours(24));
 
         userRepository.save(finalUser);
         
-        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(this, finalUser));
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(
+            finalUser.getEmail(),
+            finalUser.getUsername(),
+            finalUser.getVerificationToken(),
+            LocalDateTime.now()
+        ));
     }
 
     private User setPasswordEncoder(User user) {
