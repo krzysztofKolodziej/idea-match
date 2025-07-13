@@ -1,4 +1,4 @@
-package com.example.idea_match.user.controller;
+package com.example.idea_match.user.integration;
 
 import com.example.idea_match.user.command.AddUserCommand;
 import com.example.idea_match.user.model.User;

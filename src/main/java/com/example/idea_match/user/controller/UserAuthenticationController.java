@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 @Slf4j
 public class UserAuthenticationController {
 
@@ -28,21 +28,21 @@ public class UserAuthenticationController {
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    @PostMapping("/forgot-password")
+    @PostMapping("auth/forgot-password")
     public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
         log.info("Password reset request for email: {}", request.getEmail());
         userAuthenticationService.initiatePasswordReset(request.getEmail());
         return ResponseEntity.accepted().build();
     }
 
-    @GetMapping("/reset-password")
+    @GetMapping("auth/reset-password")
     public ResponseEntity<Void> validateResetToken(@RequestParam String token) {
         log.info("Validating password reset token");
         userAuthenticationService.validatePasswordResetToken(token);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/reset-password")
+    @PostMapping("auth/reset-password")
     public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         log.info("Password reset attempt with token");
         userAuthenticationService.resetPassword(request.getToken(), request.getNewPassword());

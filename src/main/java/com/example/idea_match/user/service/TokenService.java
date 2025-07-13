@@ -5,6 +5,7 @@ import com.example.idea_match.user.exceptions.InvalidTokenException;
 import com.example.idea_match.user.exceptions.InvalidVerificationTokenException;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class TokenService {
         return user;
     }
 
+    @Transactional
     public void validateVerificationToken(String token) {
         User user = userRepository.findByVerificationToken(token)
             .orElseThrow(() -> new InvalidVerificationTokenException("Invalid verification token"));

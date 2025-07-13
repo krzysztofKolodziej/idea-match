@@ -10,7 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import software.amazon.awssdk.services.ses.model.MessageRejectedException;
 import software.amazon.awssdk.services.ses.model.SesException;
 
@@ -28,13 +29,12 @@ class UserExceptionHandlerTest {
         BlackListedTokenException exception = new BlackListedTokenException("Token is blacklisted");
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleBlacklistedToken(exception);
+        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody().message()).isEqualTo("Token is blacklisted");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.message()).isEqualTo("Token is blacklisted");
     }
 
     @Test
@@ -43,13 +43,40 @@ class UserExceptionHandlerTest {
         InvalidJwtTokenException exception = new InvalidJwtTokenException("JWT token is invalid");
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleInvalidJwt(exception);
+        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody().message()).isEqualTo("JWT token is invalid");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.message()).isEqualTo("JWT token is invalid");
+    }
+
+    @Test
+    void shouldHandleBadCredentialsException() {
+        // given
+        BadCredentialsException exception = new BadCredentialsException("Bad credentials");
+
+        // when
+        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.message()).isEqualTo("Invalid credentials");
+    }
+
+    @Test
+    void shouldHandleDisabledException() {
+        // given
+        DisabledException exception = new DisabledException("User account is disabled");
+
+        // when
+        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.message()).isEqualTo("Account is disabled");
     }
 
     @Test
@@ -58,13 +85,12 @@ class UserExceptionHandlerTest {
         UserAlreadyExistsException exception = new UserAlreadyExistsException("User already exists");
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleUserExists(exception);
+        ErrorRespond response = userExceptionHandler.handleUserExists(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody().message()).isEqualTo("User already exists");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.message()).isEqualTo("User already exists");
     }
 
     @Test
@@ -75,13 +101,12 @@ class UserExceptionHandlerTest {
                 .build();
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleMessageRejectedException(exception);
+        ErrorRespond response = userExceptionHandler.handleEmailErrors(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().message()).isEqualTo("Email service error: Email was rejected by SES");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.message()).isEqualTo("Email service error: Email was rejected by SES");
     }
 
     @Test
@@ -92,13 +117,12 @@ class UserExceptionHandlerTest {
                 .build();
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleSesException(exception);
+        ErrorRespond response = userExceptionHandler.handleEmailErrors(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().message()).isEqualTo("Email service error: SES service unavailable");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.message()).isEqualTo("Email service error: SES service unavailable");
     }
 
     @Test
@@ -107,13 +131,12 @@ class UserExceptionHandlerTest {
         EmailSendingException exception = new EmailSendingException("Failed to send email to user@example.com", new Exception());
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleEmailSending(exception);
+        ErrorRespond response = userExceptionHandler.handleEmailSending(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody().message()).isEqualTo("Failed to send email: Failed to send email to user@example.com");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.message()).isEqualTo("Failed to send email: Failed to send email to user@example.com");
     }
 
     @Test
@@ -123,13 +146,12 @@ class UserExceptionHandlerTest {
         EmailSendingException exception = new EmailSendingException("Email sending failed", cause);
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleEmailSending(exception);
+        ErrorRespond response = userExceptionHandler.handleEmailSending(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody().message()).isEqualTo("Failed to send email: Email sending failed");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.message()).isEqualTo("Failed to send email: Email sending failed");
     }
 
     @Test
@@ -138,13 +160,12 @@ class UserExceptionHandlerTest {
         UserAlreadyExistsException exception = new UserAlreadyExistsException(null);
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleUserExists(exception);
+        ErrorRespond response = userExceptionHandler.handleUserExists(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody().message()).isNull();
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.message()).isNull();
     }
 
     @Test
@@ -153,13 +174,12 @@ class UserExceptionHandlerTest {
         InvalidJwtTokenException exception = new InvalidJwtTokenException("");
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleInvalidJwt(exception);
+        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody().message()).isEmpty();
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.message()).isEmpty();
     }
 
     @Test
@@ -170,13 +190,12 @@ class UserExceptionHandlerTest {
                 .build();
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleMessageRejectedException(exception);
+        ErrorRespond response = userExceptionHandler.handleEmailErrors(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().message()).isEqualTo("Email service error: null");
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.message()).isEqualTo("Email service error: null");
     }
 
     @Test
@@ -187,13 +206,12 @@ class UserExceptionHandlerTest {
                 .build();
 
         // when
-        ResponseEntity<ErrorRespond> response = userExceptionHandler.handleSesException(exception);
+        ErrorRespond response = userExceptionHandler.handleEmailErrors(exception);
 
         // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().status()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().message())
+        assertThat(response).isNotNull();
+        assertThat(response.status()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.message())
                 .isEqualTo("Email service error: The request signature we calculated does not match the signature you provided");
     }
 }

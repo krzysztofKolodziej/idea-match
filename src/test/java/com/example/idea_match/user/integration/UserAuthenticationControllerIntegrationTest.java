@@ -88,7 +88,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -104,7 +104,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -112,7 +112,7 @@ class UserAuthenticationControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturnForbiddenForInvalidCredentials() {
+    void shouldReturnUnauthorizedForInvalidCredentials() {
         LoginRequest loginRequest = new LoginRequest("johndoe", "wrongpassword");
         
         HttpHeaders headers = new HttpHeaders();
@@ -120,13 +120,13 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void shouldReturnForbiddenForNonExistentUser() {
+    void shouldReturnUnauthorizedForNonExistentUser() {
         LoginRequest loginRequest = new LoginRequest("nonexistent", "password123");
         
         HttpHeaders headers = new HttpHeaders();
@@ -134,13 +134,13 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void shouldReturnForbiddenForDisabledUser() {
+    void shouldReturnUnauthorizedForDisabledUser() {
         User disabledUser = User.builder()
                 .firstName("Jane")
                 .lastName("Smith")
@@ -165,9 +165,9 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -179,7 +179,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -193,7 +193,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -207,7 +207,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -221,7 +221,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -235,7 +235,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<String> request = new HttpEntity<>(malformedJson, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -247,7 +247,7 @@ class UserAuthenticationControllerIntegrationTest {
         HttpEntity<String> request = new HttpEntity<>("some text", headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/auth/login", request, String.class);
+                "http://localhost:" + port + "/api/login", request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }

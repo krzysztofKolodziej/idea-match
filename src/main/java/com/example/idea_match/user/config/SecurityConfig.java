@@ -30,7 +30,7 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/account/**").authenticated()
+                        .requestMatchers("/account/**", "/auth/**").authenticated()
                         .anyRequest().permitAll());
 
         http.addFilterBefore(

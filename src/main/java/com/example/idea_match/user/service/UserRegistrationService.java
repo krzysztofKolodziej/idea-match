@@ -6,7 +6,7 @@ import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

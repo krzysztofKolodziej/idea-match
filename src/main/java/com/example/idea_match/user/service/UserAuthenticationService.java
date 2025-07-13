@@ -8,6 +8,7 @@ import com.example.idea_match.user.exceptions.InvalidTokenException;
 import com.example.idea_match.user.jwt.JwtTokenProvider;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +47,7 @@ public class UserAuthenticationService {
         return jwtTokenProvider.createAccessToken(userDetails.getUser());
     }
 
+    @Transactional
     public void initiatePasswordReset(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         
@@ -70,7 +72,8 @@ public class UserAuthenticationService {
             log.warn("Password reset attempted for non-existent email: {}", email);
         }
     }
-    
+
+    @Transactional
     public void resetPassword(String token, String newPassword) {
         User user = userRepository.findByPasswordResetToken(token)
             .orElseThrow(() -> new InvalidTokenException("Invalid or expired reset token"));
