@@ -1,7 +1,8 @@
 package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.command.ChangePasswordCommand;
-import com.example.idea_match.user.exceptions.IncorrectUserPassword;
+import com.example.idea_match.user.exceptions.IncorrectUserPasswordException;
+import com.example.idea_match.user.exceptions.UsernameOrEmailNotFoundException;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
@@ -130,7 +131,7 @@ class UserSecurityServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userSecurityService.changePassword(changePasswordCommand))
-                .isInstanceOf(UsernameNotFoundException.class)
+                .isInstanceOf(UsernameOrEmailNotFoundException.class)
                 .hasMessage("User not found: nonexistent");
 
         verify(userRepository, never()).save(any());
@@ -149,7 +150,7 @@ class UserSecurityServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userSecurityService.changePassword(changePasswordCommand))
-                .isInstanceOf(IncorrectUserPassword.class)
+                .isInstanceOf(IncorrectUserPasswordException.class)
                 .hasMessage("Old password is incorrect");
 
         verify(userRepository, never()).save(any());

@@ -1,6 +1,7 @@
 package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.dto.UserResponse;
 import com.example.idea_match.user.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,4 +17,7 @@ public interface UserMapper {
     @Mapping(target = "tokenExpirationTime", ignore = true)
     @Mapping(target = "enabled", constant = "false")
     User dtoToEntity(AddUserCommand addUserCommand);
+
+    @Mapping(target = "userId", source = "id")
+    UserResponse entityToDto(User user);
 }

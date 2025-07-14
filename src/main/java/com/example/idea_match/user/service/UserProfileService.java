@@ -1,27 +1,23 @@
 package com.example.idea_match.user.service;
 
-import com.example.idea_match.user.command.ChangePasswordCommand;
-import com.example.idea_match.user.exceptions.IncorrectUserPasswordException;
+import com.example.idea_match.user.dto.UserResponse;
 import com.example.idea_match.user.exceptions.UsernameOrEmailNotFoundException;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-@Service
 @Slf4j
-public class UserSecurityService {
+@Service
+public class UserProfileService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    @Transactional
-    public void changePassword(ChangePasswordCommand request) {
+    public UserResponse getUser() {
         String usernameOrEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsernameOrEmail(
@@ -29,13 +25,8 @@ public class UserSecurityService {
                         usernameOrEmail.contains("@") ? usernameOrEmail : null)
                 .orElseThrow(() -> new UsernameOrEmailNotFoundException("User not found: " + usernameOrEmail));
 
-        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
-            throw new IncorrectUserPasswordException("Old password is incorrect");
-        }
+        log.debug("Successfully retrieved user profile for ID: {}", user.getId());
 
-        user.setPassword(passwordEncoder.encode(request.newPassword()));
-        userRepository.save(user);
-
-        log.info("Password changed successfully for user {}", user.getUsername());
+        return userMapper.entityToDto(user);
     }
 }

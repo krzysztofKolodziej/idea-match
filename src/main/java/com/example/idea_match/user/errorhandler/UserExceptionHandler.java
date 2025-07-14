@@ -22,7 +22,7 @@ public class UserExceptionHandler {
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler({BlackListedTokenException.class, InvalidJwtTokenException.class, BadCredentialsException.class,
-            DisabledException.class, IncorrectUserPassword.class})
+            DisabledException.class, IncorrectUserPasswordException.class})
     public ErrorRespond handleUnauthorized(RuntimeException ex) {
         String message = ex instanceof BadCredentialsException ? "Invalid credentials" 
                         : ex instanceof DisabledException ? "Account is disabled"
@@ -37,7 +37,7 @@ public class UserExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({InvalidVerificationTokenException.class, ExpiredVerificationTokenException.class, InvalidAuthorizationToken.class})
+    @ExceptionHandler({InvalidVerificationTokenException.class, ExpiredVerificationTokenException.class, InvalidAuthorizationTokenException.class})
     public ErrorRespond handleBadRequest(RuntimeException ex) {
         return new ErrorRespond(HttpStatus.BAD_REQUEST, ex.getMessage());
     }

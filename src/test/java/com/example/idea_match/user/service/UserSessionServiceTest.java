@@ -1,7 +1,7 @@
 package com.example.idea_match.user.service;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.example.idea_match.user.exceptions.InvalidAuthorizationToken;
+import com.example.idea_match.user.exceptions.InvalidAuthorizationTokenException;
 import com.example.idea_match.user.jwt.JwtUtils;
 import com.example.idea_match.user.jwt.RedisTokenBlacklistService;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +92,7 @@ class UserSessionServiceTest {
     void shouldThrowExceptionWhenHeaderIsNull() {
         // When & Then
         assertThatThrownBy(() -> userSessionService.logoutUser(null))
-                .isInstanceOf(InvalidAuthorizationToken.class)
+                .isInstanceOf(InvalidAuthorizationTokenException.class)
                 .hasMessage("Authorization header is missing or invalid format");
 
         verifyNoInteractions(jwtUtils, blacklistService);
@@ -103,7 +103,7 @@ class UserSessionServiceTest {
     void shouldThrowExceptionWhenHeaderIsEmpty() {
         // When & Then
         assertThatThrownBy(() -> userSessionService.logoutUser(""))
-                .isInstanceOf(InvalidAuthorizationToken.class)
+                .isInstanceOf(InvalidAuthorizationTokenException.class)
                 .hasMessage("Authorization header is missing or invalid format");
 
         verifyNoInteractions(jwtUtils, blacklistService);
@@ -114,7 +114,7 @@ class UserSessionServiceTest {
     void shouldThrowExceptionWhenHeaderDoesNotStartWithBearer() {
         // When & Then
         assertThatThrownBy(() -> userSessionService.logoutUser("Basic dGVzdDp0ZXN0"))
-                .isInstanceOf(InvalidAuthorizationToken.class)
+                .isInstanceOf(InvalidAuthorizationTokenException.class)
                 .hasMessage("Authorization header is missing or invalid format");
 
         verifyNoInteractions(jwtUtils, blacklistService);
@@ -125,7 +125,7 @@ class UserSessionServiceTest {
     void shouldThrowExceptionWhenBearerTokenIsMalformed() {
         // When & Then
         assertThatThrownBy(() -> userSessionService.logoutUser("Bearer"))
-                .isInstanceOf(InvalidAuthorizationToken.class);
+                .isInstanceOf(InvalidAuthorizationTokenException.class);
 
         verifyNoInteractions(jwtUtils, blacklistService);
     }

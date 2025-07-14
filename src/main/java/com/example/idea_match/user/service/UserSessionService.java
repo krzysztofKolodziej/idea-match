@@ -1,6 +1,6 @@
 package com.example.idea_match.user.service;
 
-import com.example.idea_match.user.exceptions.InvalidAuthorizationToken;
+import com.example.idea_match.user.exceptions.InvalidAuthorizationTokenException;
 import com.example.idea_match.user.jwt.JwtUtils;
 import com.example.idea_match.user.jwt.RedisTokenBlacklistService;
 import lombok.AllArgsConstructor;
@@ -20,7 +20,7 @@ public class UserSessionService {
 
     public void logoutUser(String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new InvalidAuthorizationToken("Authorization header is missing or invalid format");
+            throw new InvalidAuthorizationTokenException("Authorization header is missing or invalid format");
         }
 
         String token = authorizationHeader.substring(7);

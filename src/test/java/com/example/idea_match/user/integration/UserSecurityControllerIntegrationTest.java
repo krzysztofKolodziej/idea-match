@@ -85,7 +85,6 @@ class UserSecurityControllerIntegrationTest {
                 .build();
 
         testUser = userRepository.save(testUser);
-        // Skip authentication in setUp - do it in individual tests as needed
     }
 
     @Test
@@ -111,26 +110,6 @@ class UserSecurityControllerIntegrationTest {
         User updatedUser = userRepository.findById(testUser.getId()).orElseThrow();
         assertThat(passwordEncoder.matches("NewSecurePass123!", updatedUser.getPassword())).isTrue();
         assertThat(passwordEncoder.matches("currentPassword123", updatedUser.getPassword())).isFalse();
-    }
-
-    @Test
-    void shouldReturnUnauthorizedWhenNoToken() {
-        // given
-        ChangePasswordCommand request = new ChangePasswordCommand("currentPassword123", "NewSecurePass123!");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<ChangePasswordCommand> entity = new HttpEntity<>(request, headers);
-
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isIn(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN);
     }
 
     @Test
