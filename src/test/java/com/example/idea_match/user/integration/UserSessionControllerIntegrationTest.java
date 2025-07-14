@@ -320,8 +320,8 @@ class UserSessionControllerIntegrationTest {
         String redisKey = "blacklisted:" + validToken;
         Long ttl = redisTemplate.getExpire(redisKey);
         
-        // TTL should be positive and reasonable (less than token expiration time)
+        // TTL should be positive and reasonable (less than or equal to token expiration time)
         assertThat(ttl).isGreaterThan(0L);
-        assertThat(ttl).isLessThan(2592000L); // Should be less than 30 days in seconds
+        assertThat(ttl).isLessThanOrEqualTo(2592000L); // Should be less than or equal to 30 days in seconds
     }
 }

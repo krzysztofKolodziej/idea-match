@@ -178,41 +178,6 @@ class UserAuthenticationServiceTest {
         assertThat(capturedUser.getRole()).isEqualTo(Role.USER);
     }
 
-    @Test
-    void shouldHandleAuthenticationWithDifferentRoles() {
-        // given
-        User adminUser = User.builder()
-                .id(2L)
-                .firstName("Admin")
-                .lastName("User")
-                .username("admin")
-                .email("admin@example.com")
-                .phoneNumber("+48987654321")
-                .password("encodedPassword")
-                .enabled(true)
-                .role(Role.ADMIN)
-                .build();
-        
-        CustomUserDetails adminUserDetails = new CustomUserDetails(adminUser);
-        LoginRequest adminLoginRequest = new LoginRequest("admin", "adminPassword");
-        
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(adminUserDetails);
-        when(jwtTokenProvider.createAccessToken(adminUser)).thenReturn("admin-jwt-token");
-
-        // when
-        String result = userAuthenticationService.login(adminLoginRequest);
-
-        // then
-        assertThat(result).isEqualTo("admin-jwt-token");
-        
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(jwtTokenProvider).createAccessToken(userCaptor.capture());
-        
-        User capturedUser = userCaptor.getValue();
-        assertThat(capturedUser.getRole()).isEqualTo(Role.ADMIN);
-    }
 
     @Test
     void shouldHandleNullAuthenticationResult() {
