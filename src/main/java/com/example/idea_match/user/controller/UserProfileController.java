@@ -5,6 +5,7 @@ import com.example.idea_match.user.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,5 +23,12 @@ public class UserProfileController {
         UserResponse userResponse = userProfileService.getUser();
 
         return ResponseEntity.ok(userResponse);
+    }
+
+    @DeleteMapping("/profile")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> deleteAccount() {
+        userProfileService.deleteCurrentUser();
+        return ResponseEntity.noContent().build();
     }
 }

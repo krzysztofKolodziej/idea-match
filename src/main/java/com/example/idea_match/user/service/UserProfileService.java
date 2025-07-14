@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -28,5 +29,19 @@ public class UserProfileService {
         log.debug("Successfully retrieved user profile for ID: {}", user.getId());
 
         return userMapper.entityToDto(user);
+    }
+
+    @Transactional
+    public void deleteCurrentUser() {
+        String usernameOrEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        User user = userRepository.findByUsernameOrEmail(
+                        usernameOrEmail.contains("@") ? null : usernameOrEmail,
+                        usernameOrEmail.contains("@") ? usernameOrEmail : null)
+                .orElseThrow(() -> new UsernameOrEmailNotFoundException("User not found: " + usernameOrEmail));
+        
+        userRepository.delete(user);
+        
+        log.info("User deleted successfully: {} (ID: {})", user.getUsername(), user.getId());
     }
 }

@@ -164,6 +164,49 @@ class UserProfileControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    @Test
+    void shouldDeleteUserAccountSuccessfully() {
+        // given
+        String jwtToken = authenticateAndGetJwtToken("johndoe", "password123");
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/account/profile",
+                HttpMethod.DELETE,
+                request,
+                Void.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(userRepository.findByUsername("johndoe")).isEmpty();
+    }
+
+    @Test
+    void shouldDeleteUserAccountWithEmailAuthentication() {
+        // given
+        String jwtToken = authenticateAndGetJwtToken("john@example.com", "password123");
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<Void> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/account/profile",
+                HttpMethod.DELETE,
+                request,
+                Void.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(userRepository.findByEmail("john@example.com")).isEmpty();
+    }
 
     private String authenticateAndGetJwtToken(String usernameOrEmail, String password) {
         LoginRequest loginRequest = new LoginRequest(usernameOrEmail, password);

@@ -142,4 +142,53 @@ class UserProfileServiceTest {
         verify(userMapper, never()).entityToDto(any());
     }
 
+    @Test
+    void shouldDeleteCurrentUserSuccessfully() {
+        // given
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("johndoe");
+        when(userRepository.findByUsernameOrEmail(eq("johndoe"), eq(null)))
+                .thenReturn(Optional.of(testUser));
+
+        // when
+        userProfileService.deleteCurrentUser();
+
+        // then
+        verify(userRepository).findByUsernameOrEmail("johndoe", null);
+        verify(userRepository).delete(testUser);
+    }
+
+    @Test
+    void shouldDeleteCurrentUserWithEmailSuccessfully() {
+        // given
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("john@example.com");
+        when(userRepository.findByUsernameOrEmail(eq(null), eq("john@example.com")))
+                .thenReturn(Optional.of(testUser));
+
+        // when
+        userProfileService.deleteCurrentUser();
+
+        // then
+        verify(userRepository).findByUsernameOrEmail(null, "john@example.com");
+        verify(userRepository).delete(testUser);
+    }
+
+    @Test
+    void shouldThrowUsernameOrEmailNotFoundWhenDeletingNonExistentUser() {
+        // given
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("nonexistent");
+        when(userRepository.findByUsernameOrEmail(eq("nonexistent"), eq(null)))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userProfileService.deleteCurrentUser())
+                .isInstanceOf(UsernameOrEmailNotFoundException.class)
+                .hasMessage("User not found: nonexistent");
+
+        verify(userRepository).findByUsernameOrEmail("nonexistent", null);
+        verify(userRepository, never()).delete(any());
+    }
+
 }
