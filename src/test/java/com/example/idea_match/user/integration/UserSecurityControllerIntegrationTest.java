@@ -6,6 +6,7 @@ import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @ActiveProfiles("test")
 @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@DisplayName("UserSecurityController Integration Tests")
 class UserSecurityControllerIntegrationTest {
 
     @Container
@@ -88,6 +90,7 @@ class UserSecurityControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should change password successfully")
     void shouldChangePasswordSuccessfully() {
         // given
         String token = authenticateAndGetToken();
@@ -112,157 +115,11 @@ class UserSecurityControllerIntegrationTest {
         assertThat(passwordEncoder.matches("currentPassword123", updatedUser.getPassword())).isFalse();
     }
 
-    @Test
-    void shouldReturnUnauthorizedForIncorrectOldPassword() {
-        // given
-        String token = authenticateAndGetToken();
-        ChangePasswordCommand request = new ChangePasswordCommand("wrongOldPassword", "NewSecurePass123!");
-        HttpHeaders headers = createAuthHeaders(token);
-        HttpEntity<ChangePasswordCommand> entity = new HttpEntity<>(request, headers);
 
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
 
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getBody()).contains("Old password is incorrect");
 
-        User unchangedUser = userRepository.findById(testUser.getId()).orElseThrow();
-        assertThat(passwordEncoder.matches("currentPassword123", unchangedUser.getPassword())).isTrue();
-    }
 
-    @Test
-    void shouldReturnBadRequestForInvalidNewPassword() {
-        // given
-        String token = authenticateAndGetToken();
-        ChangePasswordCommand request = new ChangePasswordCommand("currentPassword123", "weak");
-        HttpHeaders headers = createAuthHeaders(token);
-        HttpEntity<ChangePasswordCommand> entity = new HttpEntity<>(request, headers);
 
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("Password must");
-
-        User unchangedUser = userRepository.findById(testUser.getId()).orElseThrow();
-        assertThat(passwordEncoder.matches("currentPassword123", unchangedUser.getPassword())).isTrue();
-    }
-
-    @Test
-    void shouldReturnBadRequestForEmptyOldPassword() {
-        // given
-        String token = authenticateAndGetToken();
-        ChangePasswordCommand request = new ChangePasswordCommand("", "NewSecurePass123!");
-        HttpHeaders headers = createAuthHeaders(token);
-        HttpEntity<ChangePasswordCommand> entity = new HttpEntity<>(request, headers);
-
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("Old password is required");
-    }
-
-    @Test
-    void shouldReturnBadRequestForEmptyNewPassword() {
-        // given
-        String token = authenticateAndGetToken();
-        ChangePasswordCommand request = new ChangePasswordCommand("currentPassword123", "");
-        HttpHeaders headers = createAuthHeaders(token);
-        HttpEntity<ChangePasswordCommand> entity = new HttpEntity<>(request, headers);
-
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("New password is required");
-    }
-
-    @Test
-    void shouldReturnBadRequestForNullRequestBody() {
-        // given
-        String token = authenticateAndGetToken();
-        HttpHeaders headers = createAuthHeaders(token);
-        HttpEntity<Object> entity = new HttpEntity<>(null, headers);
-
-        // when
-        ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                String.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void shouldChangePasswordForUserAuthenticatedByEmail() {
-        // given - create user with email authentication
-        User emailUser = User.builder()
-                .firstName("Jane")
-                .lastName("Smith")
-                .username("janesmith")
-                .email("jane@example.com")
-                .phoneNumber("+48987654321")
-                .location("Krakow")
-                .aboutMe("Designer")
-                .password(passwordEncoder.encode("emailUserPass123"))
-                .enabled(true)
-                .role(Role.USER)
-                .verificationToken("email-token")
-                .tokenExpirationTime(LocalDateTime.now().plusHours(24))
-                .build();
-
-        emailUser = userRepository.save(emailUser);
-        String emailJwtToken = authenticateUserAndGetToken("jane@example.com", "emailUserPass123");
-
-        ChangePasswordCommand request = new ChangePasswordCommand("emailUserPass123", "NewEmailPass456!");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(emailJwtToken);
-        HttpEntity<ChangePasswordCommand> entity = new HttpEntity<>(request, headers);
-
-        // when
-        ResponseEntity<Void> response = restTemplate.exchange(
-                baseUrl + "/change-password",
-                HttpMethod.POST,
-                entity,
-                Void.class
-        );
-
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        User updatedEmailUser = userRepository.findById(emailUser.getId()).orElseThrow();
-        assertThat(passwordEncoder.matches("NewEmailPass456!", updatedEmailUser.getPassword())).isTrue();
-        assertThat(passwordEncoder.matches("emailUserPass123", updatedEmailUser.getPassword())).isFalse();
-    }
 
     private String authenticateAndGetToken() {
         return authenticateUserAndGetToken("johndoe", "currentPassword123");

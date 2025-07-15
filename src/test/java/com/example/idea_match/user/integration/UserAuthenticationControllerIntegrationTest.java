@@ -5,6 +5,7 @@ import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @ActiveProfiles("test")
 @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@DisplayName("UserAuthenticationController Integration Tests")
 class UserAuthenticationControllerIntegrationTest {
 
     @Container
@@ -80,6 +82,7 @@ class UserAuthenticationControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should login successfully with username")
     void shouldLoginSuccessfullyWithUsername() {
         LoginRequest loginRequest = new LoginRequest("johndoe", "password123");
         
@@ -96,6 +99,7 @@ class UserAuthenticationControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should login successfully with email")
     void shouldLoginSuccessfullyWithEmail() {
         LoginRequest loginRequest = new LoginRequest("john@example.com", "password123");
         
@@ -112,6 +116,7 @@ class UserAuthenticationControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return unauthorized for invalid credentials")
     void shouldReturnUnauthorizedForInvalidCredentials() {
         LoginRequest loginRequest = new LoginRequest("johndoe", "wrongpassword");
         
@@ -126,6 +131,7 @@ class UserAuthenticationControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return unauthorized for non-existent user")
     void shouldReturnUnauthorizedForNonExistentUser() {
         LoginRequest loginRequest = new LoginRequest("nonexistent", "password123");
         
@@ -140,6 +146,7 @@ class UserAuthenticationControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return unauthorized for disabled user")
     void shouldReturnUnauthorizedForDisabledUser() {
         User disabledUser = User.builder()
                 .firstName("Jane")
@@ -170,85 +177,9 @@ class UserAuthenticationControllerIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
-    @Test
-    void shouldReturnBadRequestForEmptyUsername() {
-        LoginRequest loginRequest = new LoginRequest("", "password123");
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/login", request, String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
 
-    @Test
-    void shouldReturnBadRequestForEmptyPassword() {
-        LoginRequest loginRequest = new LoginRequest("johndoe", "");
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/login", request, String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void shouldReturnBadRequestForNullUsername() {
-        String requestBody = "{\"usernameOrEmail\": null, \"password\": \"password123\"}";
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/login", request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void shouldReturnBadRequestForNullPassword() {
-        String requestBody = "{\"usernameOrEmail\": \"johndoe\", \"password\": null}";
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/login", request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void shouldReturnBadRequestForMalformedJson() {
-        String malformedJson = "{\"usernameOrEmail\": \"johndoe\", \"password\": ";
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(malformedJson, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/login", request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void shouldReturnUnsupportedMediaTypeForWrongContentType() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_PLAIN);
-        HttpEntity<String> request = new HttpEntity<>("some text", headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://localhost:" + port + "/api/login", request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-    }
 }

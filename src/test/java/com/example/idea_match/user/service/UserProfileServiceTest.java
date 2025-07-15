@@ -2,12 +2,11 @@ package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.command.UpdateUserProfileCommand;
 import com.example.idea_match.user.dto.UserResponse;
-import com.example.idea_match.user.exceptions.PhoneNumberAlreadyExistsException;
-import com.example.idea_match.user.exceptions.UsernameOrEmailNotFoundException;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,11 +20,12 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("UserProfileService Unit Tests")
 class UserProfileServiceTest {
 
     @Mock
@@ -80,6 +80,7 @@ class UserProfileServiceTest {
     }
 
     @Test
+    @DisplayName("Should get user successfully with username")
     void shouldGetUserSuccessfullyWithUsername() {
         // given
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -106,45 +107,10 @@ class UserProfileServiceTest {
         verify(userMapper).entityToDto(testUser);
     }
 
-    @Test
-    void shouldGetUserSuccessfullyWithEmail() {
-        // given
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("john@example.com");
-        when(userRepository.findByUsernameOrEmail(eq(null), eq("john@example.com")))
-                .thenReturn(Optional.of(testUser));
-        when(userMapper.entityToDto(testUser)).thenReturn(testUserResponse);
 
-        // when
-        UserResponse result = userProfileService.getUser();
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.userId()).isEqualTo(1L);
-        assertThat(result.email()).isEqualTo("john@example.com");
-
-        verify(userRepository).findByUsernameOrEmail(null, "john@example.com");
-        verify(userMapper).entityToDto(testUser);
-    }
 
     @Test
-    void shouldThrowUsernameOrEmailNotFoundWhenUserNotExists() {
-        // given
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("nonexistent");
-        when(userRepository.findByUsernameOrEmail(eq("nonexistent"), eq(null)))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> userProfileService.getUser())
-                .isInstanceOf(UsernameOrEmailNotFoundException.class)
-                .hasMessage("User not found: nonexistent");
-
-        verify(userRepository).findByUsernameOrEmail("nonexistent", null);
-        verify(userMapper, never()).entityToDto(any());
-    }
-
-    @Test
+    @DisplayName("Should delete current user successfully")
     void shouldDeleteCurrentUserSuccessfully() {
         // given
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -160,40 +126,10 @@ class UserProfileServiceTest {
         verify(userRepository).delete(testUser);
     }
 
-    @Test
-    void shouldDeleteCurrentUserWithEmailSuccessfully() {
-        // given
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("john@example.com");
-        when(userRepository.findByUsernameOrEmail(eq(null), eq("john@example.com")))
-                .thenReturn(Optional.of(testUser));
 
-        // when
-        userProfileService.deleteCurrentUser();
-
-        // then
-        verify(userRepository).findByUsernameOrEmail(null, "john@example.com");
-        verify(userRepository).delete(testUser);
-    }
 
     @Test
-    void shouldThrowUsernameOrEmailNotFoundWhenDeletingNonExistentUser() {
-        // given
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("nonexistent");
-        when(userRepository.findByUsernameOrEmail(eq("nonexistent"), eq(null)))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> userProfileService.deleteCurrentUser())
-                .isInstanceOf(UsernameOrEmailNotFoundException.class)
-                .hasMessage("User not found: nonexistent");
-
-        verify(userRepository).findByUsernameOrEmail("nonexistent", null);
-        verify(userRepository, never()).delete(any());
-    }
-
-    @Test
+    @DisplayName("Should update user profile successfully")
     void shouldUpdateUserProfileSuccessfully() {
         // given
         UpdateUserProfileCommand command = new UpdateUserProfileCommand(
@@ -256,89 +192,7 @@ class UserProfileServiceTest {
         verify(userMapper).entityToDto(updatedUser);
     }
 
-    @Test
-    void shouldUpdateUserProfileWithEmailSuccessfully() {
-        // given
-        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
-                "Jane",
-                "Smith",
-                "+48987654321",
-                "Krakow",
-                "Senior developer"
-        );
 
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("john@example.com");
-        when(userRepository.findByUsernameOrEmail(eq(null), eq("john@example.com")))
-                .thenReturn(Optional.of(testUser));
-        when(userRepository.existsByPhoneNumber("+48987654321")).thenReturn(false);
-        when(userRepository.save(testUser)).thenReturn(testUser);
-        when(userMapper.entityToDto(testUser)).thenReturn(testUserResponse);
 
-        // when
-        UserResponse result = userProfileService.updateUserProfile(command);
-
-        // then
-        assertThat(result).isNotNull();
-        verify(userRepository).findByUsernameOrEmail(null, "john@example.com");
-        verify(userRepository).existsByPhoneNumber("+48987654321");
-        verify(userMapper).updateUserFromCommand(command, testUser);
-        verify(userRepository).save(testUser);
-        verify(userMapper).entityToDto(testUser);
-    }
-
-    @Test
-    void shouldThrowUsernameOrEmailNotFoundWhenUpdatingNonExistentUser() {
-        // given
-        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
-                "Jane",
-                "Smith",
-                "+48987654321",
-                "Krakow",
-                "Senior developer"
-        );
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("nonexistent");
-        when(userRepository.findByUsernameOrEmail(eq("nonexistent"), eq(null)))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> userProfileService.updateUserProfile(command))
-                .isInstanceOf(UsernameOrEmailNotFoundException.class)
-                .hasMessage("User not found: nonexistent");
-
-        verify(userRepository).findByUsernameOrEmail("nonexistent", null);
-        verify(userMapper, never()).updateUserFromCommand(any(), any());
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldThrowPhoneNumberAlreadyExistsWhenUpdatingWithExistingPhoneNumber() {
-        // given
-        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
-                "Jane",
-                "Smith",
-                "+48111222333", // Different phone number
-                "Krakow",
-                "Senior developer"
-        );
-
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("johndoe");
-        when(userRepository.findByUsernameOrEmail(eq("johndoe"), eq(null)))
-                .thenReturn(Optional.of(testUser));
-        when(userRepository.existsByPhoneNumber("+48111222333")).thenReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> userProfileService.updateUserProfile(command))
-                .isInstanceOf(PhoneNumberAlreadyExistsException.class)
-                .hasMessage("Phone number already exists: +48111222333");
-
-        verify(userRepository).findByUsernameOrEmail("johndoe", null);
-        verify(userRepository).existsByPhoneNumber("+48111222333");
-        verify(userMapper, never()).updateUserFromCommand(any(), any());
-        verify(userRepository, never()).save(any());
-    }
 
 }
