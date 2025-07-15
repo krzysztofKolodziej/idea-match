@@ -25,7 +25,7 @@ public class User {
     private String firstName;
 
     @Column(nullable = false)
-    private String lastname;
+    private String lastName;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -53,11 +53,15 @@ public class User {
 
     private String verificationToken;
 
-    @Column(nullable = false)
     private LocalDateTime tokenExpirationTime;
 
+    private String passwordResetToken;
+
+    private LocalDateTime passwordResetTokenExpiry;
+
     @Column(nullable = false)
-    private boolean enabled;
+    @Builder.Default
+    private boolean enabled = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

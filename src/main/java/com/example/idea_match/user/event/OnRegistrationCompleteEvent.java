@@ -1,16 +1,10 @@
 package com.example.idea_match.user.event;
 
-import com.example.idea_match.user.model.User;
-import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import java.time.LocalDateTime;
 
-@Getter
-public class OnRegistrationCompleteEvent extends ApplicationEvent {
-    
-    private final User user;
-    
-    public OnRegistrationCompleteEvent(Object source, User user) {
-        super(source);
-        this.user = user;
-    }
-}
+public record OnRegistrationCompleteEvent(
+    String email,
+    String username,
+    String verificationToken,
+    LocalDateTime registeredAt
+) {}

@@ -21,7 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http,
                                     AuthenticationManager authenticationManager,
@@ -31,7 +30,7 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/account/**").authenticated()
+                        .requestMatchers("/account/**", "/auth/**").authenticated()
                         .anyRequest().permitAll());
 
         http.addFilterBefore(

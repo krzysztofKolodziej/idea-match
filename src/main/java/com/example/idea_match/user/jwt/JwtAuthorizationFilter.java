@@ -42,8 +42,15 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         String token = request.getHeader(TOKEN_HEADER);
 
         if (token != null && token.startsWith(TOKEN_PREFIX)) {
-            UsernamePasswordAuthenticationToken authentication = getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                UsernamePasswordAuthenticationToken authentication = getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (BlackListedTokenException | InvalidJwtTokenException ex) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"status\":\"UNAUTHORIZED\",\"message\":\"" + ex.getMessage() + "\"}");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);

@@ -6,7 +6,9 @@ import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
-import com.example.idea_match.user.service.mapper.UserMapper;
+import com.example.idea_match.user.service.TokenService;
+import com.example.idea_match.user.service.UserRegistrationService;
+import com.example.idea_match.user.service.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +42,9 @@ class UserRegistrationServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private TokenService tokenService;
+
     @InjectMocks
     private UserRegistrationService userRegistrationService;
 
@@ -61,7 +66,7 @@ class UserRegistrationServiceTest {
 
         mappedUser = User.builder()
                 .firstName("John")
-                .lastname("Doe")
+                .lastName("Doe")
                 .username("johndoe")
                 .email("john@example.com")
                 .phoneNumber("+48123456789")
@@ -83,19 +88,19 @@ class UserRegistrationServiceTest {
         )).thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(mappedUser);
 
         // when
         userRegistrationService.userRegistration(validCommand);
 
         // then
+        verify(tokenService).createVerificationToken(any(User.class), any(LocalDateTime.class));
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getPassword()).isEqualTo("encodedPassword");
-        assertThat(savedUser.getVerificationToken()).isNotNull();
-        assertThat(savedUser.getTokenExpirationTime()).isAfter(LocalDateTime.now());
-        assertThat(savedUser.getTokenExpirationTime()).isBefore(LocalDateTime.now().plusHours(25));
 
         verify(eventPublisher).publishEvent(any(OnRegistrationCompleteEvent.class));
     }
@@ -126,6 +131,8 @@ class UserRegistrationServiceTest {
                 .thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode("password123")).thenReturn("super-secure-hash");
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(mappedUser);
 
         // when
         userRegistrationService.userRegistration(validCommand);
@@ -144,17 +151,23 @@ class UserRegistrationServiceTest {
                 .thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        User userWithToken = User.builder()
+                .verificationToken("test-token-uuid")
+                .build();
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(userWithToken);
 
         // when
         userRegistrationService.userRegistration(validCommand);
 
         // then
+        verify(tokenService).createVerificationToken(any(User.class), any(LocalDateTime.class));
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getVerificationToken()).isNotNull();
-        assertThat(savedUser.getVerificationToken()).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+        assertThat(savedUser.getVerificationToken()).isEqualTo("test-token-uuid");
     }
 
     @Test
@@ -164,6 +177,21 @@ class UserRegistrationServiceTest {
                 .thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        User userWithToken = User.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john@example.com")
+                .phoneNumber("+48123456789")
+                .location("Warsaw")
+                .aboutMe("Software developer")
+                .password("encodedPassword")
+                .enabled(false)
+                .role(Role.USER)
+                .verificationToken("test-token-uuid")
+                .build();
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(userWithToken);
 
         // when
         userRegistrationService.userRegistration(validCommand);
@@ -173,9 +201,10 @@ class UserRegistrationServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         
         OnRegistrationCompleteEvent event = eventCaptor.getValue();
-        assertThat(event.getUser()).isNotNull();
-        assertThat(event.getUser().getUsername()).isEqualTo("johndoe");
-        assertThat(event.getSource()).isEqualTo(userRegistrationService);
+        assertThat(event.email()).isEqualTo("john@example.com");
+        assertThat(event.username()).isEqualTo("johndoe");
+        assertThat(event.verificationToken()).isNotNull();
+        assertThat(event.registeredAt()).isNotNull();
     }
 
     @Test
@@ -186,11 +215,17 @@ class UserRegistrationServiceTest {
                 .thenReturn(false);
         when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        User userWithToken = User.builder()
+                .tokenExpirationTime(LocalDateTime.now().plusHours(24))
+                .build();
+        when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
+                .thenReturn(userWithToken);
 
         // when
         userRegistrationService.userRegistration(validCommand);
 
         // then
+        verify(tokenService).createVerificationToken(any(User.class), any(LocalDateTime.class));
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         

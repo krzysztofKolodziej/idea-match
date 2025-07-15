@@ -1,8 +1,7 @@
 package com.example.idea_match.user.listener;
 
 import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
-import com.example.idea_match.user.model.User;
-import com.example.idea_match.user.service.EmailService;
+import com.example.idea_match.user.service.email.RegistrationEmailService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -14,19 +13,17 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RegistrationListener {
     
-    private final EmailService emailService;
+    private final RegistrationEmailService registrationEmailService;
     
     @EventListener
     @Async
     public void handleRegistrationComplete(OnRegistrationCompleteEvent event) {
-        User user = event.getUser();
+        log.info("Processing registration complete event for user: {}", event.username());
         
-        log.info("Processing registration complete event for user: {}", user.getUsername());
-        
-        emailService.sendRegistrationEmail(
-            user.getEmail(),
-            user.getUsername(),
-            user.getVerificationToken()
+        registrationEmailService.sendRegistrationEmail(
+            event.email(),
+            event.username(),
+            event.verificationToken()
         );
     }
 }
