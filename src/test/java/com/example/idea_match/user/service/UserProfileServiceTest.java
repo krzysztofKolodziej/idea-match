@@ -1,6 +1,8 @@
 package com.example.idea_match.user.service;
 
+import com.example.idea_match.user.command.UpdateUserProfileCommand;
 import com.example.idea_match.user.dto.UserResponse;
+import com.example.idea_match.user.exceptions.PhoneNumberAlreadyExistsException;
 import com.example.idea_match.user.exceptions.UsernameOrEmailNotFoundException;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
@@ -189,6 +191,154 @@ class UserProfileServiceTest {
 
         verify(userRepository).findByUsernameOrEmail("nonexistent", null);
         verify(userRepository, never()).delete(any());
+    }
+
+    @Test
+    void shouldUpdateUserProfileSuccessfully() {
+        // given
+        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
+                "Jane",
+                "Smith",
+                "+48987654321",
+                "Krakow",
+                "Senior developer"
+        );
+        
+        User updatedUser = User.builder()
+                .id(1L)
+                .firstName("Jane")
+                .lastName("Smith")
+                .username("johndoe")
+                .email("john@example.com")
+                .phoneNumber("+48987654321")
+                .location("Krakow")
+                .aboutMe("Senior developer")
+                .password("encodedPassword")
+                .enabled(true)
+                .role(Role.USER)
+                .build();
+        
+        UserResponse updatedUserResponse = new UserResponse(
+                1L,
+                "Jane",
+                "Smith",
+                "johndoe",
+                "john@example.com",
+                "+48987654321",
+                null,
+                "Krakow",
+                "Senior developer"
+        );
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("johndoe");
+        when(userRepository.findByUsernameOrEmail(eq("johndoe"), eq(null)))
+                .thenReturn(Optional.of(testUser));
+        when(userRepository.existsByPhoneNumber("+48987654321")).thenReturn(false);
+        when(userRepository.save(testUser)).thenReturn(updatedUser);
+        when(userMapper.entityToDto(updatedUser)).thenReturn(updatedUserResponse);
+
+        // when
+        UserResponse result = userProfileService.updateUserProfile(command);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.firstName()).isEqualTo("Jane");
+        assertThat(result.lastName()).isEqualTo("Smith");
+        assertThat(result.phoneNumber()).isEqualTo("+48987654321");
+        assertThat(result.location()).isEqualTo("Krakow");
+        assertThat(result.aboutMe()).isEqualTo("Senior developer");
+
+        verify(userRepository).findByUsernameOrEmail("johndoe", null);
+        verify(userRepository).existsByPhoneNumber("+48987654321");
+        verify(userMapper).updateUserFromCommand(command, testUser);
+        verify(userRepository).save(testUser);
+        verify(userMapper).entityToDto(updatedUser);
+    }
+
+    @Test
+    void shouldUpdateUserProfileWithEmailSuccessfully() {
+        // given
+        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
+                "Jane",
+                "Smith",
+                "+48987654321",
+                "Krakow",
+                "Senior developer"
+        );
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("john@example.com");
+        when(userRepository.findByUsernameOrEmail(eq(null), eq("john@example.com")))
+                .thenReturn(Optional.of(testUser));
+        when(userRepository.existsByPhoneNumber("+48987654321")).thenReturn(false);
+        when(userRepository.save(testUser)).thenReturn(testUser);
+        when(userMapper.entityToDto(testUser)).thenReturn(testUserResponse);
+
+        // when
+        UserResponse result = userProfileService.updateUserProfile(command);
+
+        // then
+        assertThat(result).isNotNull();
+        verify(userRepository).findByUsernameOrEmail(null, "john@example.com");
+        verify(userRepository).existsByPhoneNumber("+48987654321");
+        verify(userMapper).updateUserFromCommand(command, testUser);
+        verify(userRepository).save(testUser);
+        verify(userMapper).entityToDto(testUser);
+    }
+
+    @Test
+    void shouldThrowUsernameOrEmailNotFoundWhenUpdatingNonExistentUser() {
+        // given
+        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
+                "Jane",
+                "Smith",
+                "+48987654321",
+                "Krakow",
+                "Senior developer"
+        );
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("nonexistent");
+        when(userRepository.findByUsernameOrEmail(eq("nonexistent"), eq(null)))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userProfileService.updateUserProfile(command))
+                .isInstanceOf(UsernameOrEmailNotFoundException.class)
+                .hasMessage("User not found: nonexistent");
+
+        verify(userRepository).findByUsernameOrEmail("nonexistent", null);
+        verify(userMapper, never()).updateUserFromCommand(any(), any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowPhoneNumberAlreadyExistsWhenUpdatingWithExistingPhoneNumber() {
+        // given
+        UpdateUserProfileCommand command = new UpdateUserProfileCommand(
+                "Jane",
+                "Smith",
+                "+48111222333", // Different phone number
+                "Krakow",
+                "Senior developer"
+        );
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("johndoe");
+        when(userRepository.findByUsernameOrEmail(eq("johndoe"), eq(null)))
+                .thenReturn(Optional.of(testUser));
+        when(userRepository.existsByPhoneNumber("+48111222333")).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> userProfileService.updateUserProfile(command))
+                .isInstanceOf(PhoneNumberAlreadyExistsException.class)
+                .hasMessage("Phone number already exists: +48111222333");
+
+        verify(userRepository).findByUsernameOrEmail("johndoe", null);
+        verify(userRepository).existsByPhoneNumber("+48111222333");
+        verify(userMapper, never()).updateUserFromCommand(any(), any());
+        verify(userRepository, never()).save(any());
     }
 
 }

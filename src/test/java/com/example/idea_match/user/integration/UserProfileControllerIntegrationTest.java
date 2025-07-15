@@ -1,5 +1,6 @@
 package com.example.idea_match.user.integration;
 
+import com.example.idea_match.user.command.UpdateUserProfileCommand;
 import com.example.idea_match.user.dto.AuthResponse;
 import com.example.idea_match.user.dto.LoginRequest;
 import com.example.idea_match.user.dto.UserResponse;
@@ -206,6 +207,153 @@ class UserProfileControllerIntegrationTest {
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(userRepository.findByEmail("john@example.com")).isEmpty();
+    }
+
+    @Test
+    void shouldUpdateUserProfileSuccessfully() {
+        // given
+        String jwtToken = authenticateAndGetJwtToken("johndoe", "password123");
+        UpdateUserProfileCommand updateCommand = new UpdateUserProfileCommand(
+                "Jane",
+                "Smith",
+                "+48987654321",
+                "Krakow",
+                "Senior developer"
+        );
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<UpdateUserProfileCommand> request = new HttpEntity<>(updateCommand, headers);
+
+        ResponseEntity<UserResponse> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/account/profile",
+                HttpMethod.PUT,
+                request,
+                UserResponse.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+
+        UserResponse updatedUser = response.getBody();
+        assertThat(updatedUser.firstName()).isEqualTo("Jane");
+        assertThat(updatedUser.lastName()).isEqualTo("Smith");
+        assertThat(updatedUser.phoneNumber()).isEqualTo("+48987654321");
+        assertThat(updatedUser.location()).isEqualTo("Krakow");
+        assertThat(updatedUser.aboutMe()).isEqualTo("Senior developer");
+        assertThat(updatedUser.username()).isEqualTo("johndoe");
+        assertThat(updatedUser.email()).isEqualTo("john@example.com");
+    }
+
+    @Test
+    void shouldUpdateUserProfileWithEmailAuthentication() {
+        // given
+        String jwtToken = authenticateAndGetJwtToken("john@example.com", "password123");
+        UpdateUserProfileCommand updateCommand = new UpdateUserProfileCommand(
+                "Jane",
+                "Smith",
+                "+48987654321",
+                "Krakow",
+                "Senior developer"
+        );
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<UpdateUserProfileCommand> request = new HttpEntity<>(updateCommand, headers);
+
+        ResponseEntity<UserResponse> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/account/profile",
+                HttpMethod.PUT,
+                request,
+                UserResponse.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+
+        UserResponse updatedUser = response.getBody();
+        assertThat(updatedUser.firstName()).isEqualTo("Jane");
+        assertThat(updatedUser.lastName()).isEqualTo("Smith");
+        assertThat(updatedUser.phoneNumber()).isEqualTo("+48987654321");
+        assertThat(updatedUser.location()).isEqualTo("Krakow");
+        assertThat(updatedUser.aboutMe()).isEqualTo("Senior developer");
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenUpdateProfileWithInvalidData() {
+        // given
+        String jwtToken = authenticateAndGetJwtToken("johndoe", "password123");
+        UpdateUserProfileCommand updateCommand = new UpdateUserProfileCommand(
+                "",  // Empty firstName should fail validation
+                "Smith",
+                "invalid-phone-number",
+                "Krakow",
+                "Senior developer"
+        );
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<UpdateUserProfileCommand> request = new HttpEntity<>(updateCommand, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/account/profile",
+                HttpMethod.PUT,
+                request,
+                String.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void shouldReturnConflictWhenUpdateProfileWithExistingPhoneNumber() {
+        // given - create another user with different phone number
+        User anotherUser = User.builder()
+                .firstName("Jane")
+                .lastName("Smith")
+                .username("janesmith")
+                .email("jane@example.com")
+                .phoneNumber("+48111222333")
+                .password(passwordEncoder.encode("password123"))
+                .enabled(true)
+                .role(Role.USER)
+                .build();
+        userRepository.save(anotherUser);
+
+        String jwtToken = authenticateAndGetJwtToken("johndoe", "password123");
+        UpdateUserProfileCommand updateCommand = new UpdateUserProfileCommand(
+                "John",
+                "Updated",
+                "+48111222333", // Using Jane's phone number
+                "Warsaw",
+                "Developer"
+        );
+
+        // when
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<UpdateUserProfileCommand> request = new HttpEntity<>(updateCommand, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/account/profile",
+                HttpMethod.PUT,
+                request,
+                String.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).contains("Phone number already exists");
     }
 
     private String authenticateAndGetJwtToken(String usernameOrEmail, String password) {

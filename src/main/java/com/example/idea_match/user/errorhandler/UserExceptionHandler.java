@@ -31,8 +31,8 @@ public class UserExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ErrorRespond handleUserExists(UserAlreadyExistsException ex) {
+    @ExceptionHandler({UserAlreadyExistsException.class, PhoneNumberAlreadyExistsException.class})
+    public ErrorRespond handleUserExists(RuntimeException ex) {
         return new ErrorRespond(HttpStatus.CONFLICT, ex.getMessage());
     }
 
