@@ -232,12 +232,6 @@ Example error response:
 - **Database Logging**: SQL query logging for development
 - **WebSocket Logging**: Connection and message tracking
 
-### Health Monitoring
-- **Spring Boot Actuator**: Health checks and metrics
-- **Database Health**: Connection pool and query performance
-- **Kafka Health**: Message broker connectivity
-- **Redis Health**: Cache availability
-
 ## Contributing
 
 ### Code Style
