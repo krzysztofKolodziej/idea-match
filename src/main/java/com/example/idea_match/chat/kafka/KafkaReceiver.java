@@ -1,7 +1,6 @@
 package com.example.idea_match.chat.kafka;
 
 import com.example.idea_match.chat.dto.ChatMessageResponse;
-import com.example.idea_match.chat.exceptions.ChatMessageException;
 import com.example.idea_match.chat.mapper.ChatMessageMapper;
 import com.example.idea_match.chat.model.ChatMessage;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +19,6 @@ public class KafkaReceiver {
 
     @KafkaListener(topics = "messaging", groupId = "chat-fresh-start")
     public void consume(ChatMessage chatMessage) {
-        if (chatMessage == null) {
-            throw new ChatMessageException("Received null ChatMessage from Kafka");
-        }
-
         ChatMessageResponse response = chatMessageMapper.toResponse(chatMessage);
         distributeMessage(response);
     }
