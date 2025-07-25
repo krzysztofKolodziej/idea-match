@@ -1,7 +1,14 @@
 package com.example.idea_match.chat.model;
 
 public enum MessageType {
-    CHAT,
+    // WebSocket message types
+    JOIN,
+    CHAT, 
+    LEAVE,
     CONNECT,
-    DISCONNECT
+    DISCONNECT,
+    PRIVATE_MESSAGE,
+    // Persistent message types
+    TEXT,
+    SYSTEM
 }
