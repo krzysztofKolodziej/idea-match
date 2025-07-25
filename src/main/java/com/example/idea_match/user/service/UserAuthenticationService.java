@@ -5,7 +5,7 @@ import com.example.idea_match.user.dto.LoginRequest;
 import com.example.idea_match.user.event.PasswordResetCompletedEvent;
 import com.example.idea_match.user.event.PasswordResetRequestedEvent;
 import com.example.idea_match.user.exceptions.InvalidTokenException;
-import com.example.idea_match.user.jwt.JwtTokenProvider;
+import com.example.idea_match.shared.security.jwt.JwtTokenProvider;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
