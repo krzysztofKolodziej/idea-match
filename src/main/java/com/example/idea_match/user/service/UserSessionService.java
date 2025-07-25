@@ -1,8 +1,8 @@
 package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.exceptions.InvalidAuthorizationTokenException;
-import com.example.idea_match.user.jwt.JwtUtils;
-import com.example.idea_match.user.jwt.RedisTokenBlacklistService;
+import com.example.idea_match.shared.security.jwt.JwtUtils;
+import com.example.idea_match.shared.security.TokenBlacklistService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.Date;
 @Service
 public class UserSessionService {
 
-    private final RedisTokenBlacklistService blacklistService;
+    private final TokenBlacklistService blacklistService;
     private final JwtUtils jwtUtils;
 
 
