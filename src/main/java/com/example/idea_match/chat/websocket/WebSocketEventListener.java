@@ -23,9 +23,6 @@ public class WebSocketEventListener {
 
         Optional.ofNullable(headerAccessor.getSessionAttributes())
                 .map(attrs -> (String) attrs.get("username"))
-                .ifPresent(username -> {
-                    String sessionId = headerAccessor.getSessionId();
-                    userConnectionService.handleUserDisconnect(username, sessionId);
-                });
+                .ifPresent(userConnectionService::handleUserDisconnect);
     }
 }
