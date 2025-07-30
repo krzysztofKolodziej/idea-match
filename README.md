@@ -1,7 +1,7 @@
 # IdeaMatch
 
 ## Project Overview
-IdeaMatch is a comprehensive platform built with Java 21 and Spring Boot that connects innovators with skilled makers. The platform combines user authentication, profile management, and real-time chat functionality to create a collaborative environment.
+IdeaMatch is a the backend application for IdeaMatch, a platform designed to connect innovators with collaborators. The system allows users to post and search for project offers using advanced filtering, securely register and authenticate accounts, and communicate through real-time chat. Built with Java 21 and Spring Boot, the backend features robust security (JWT, email verification), comprehensive user and profile management, and scalable chat functionality powered by WebSocket and MongoDB. Technologies like PostgreSQL, Redis, and Apache Kafka support reliable data storage, caching, and efficient message streaming between users.
 
 ## Key Features
 
