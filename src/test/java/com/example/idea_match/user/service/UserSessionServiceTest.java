@@ -1,7 +1,7 @@
 package com.example.idea_match.user.service;
 
-import com.example.idea_match.user.jwt.JwtUtils;
-import com.example.idea_match.user.jwt.RedisTokenBlacklistService;
+import com.example.idea_match.shared.security.TokenBlacklistService;
+import com.example.idea_match.shared.security.jwt.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 class UserSessionServiceTest {
 
     @Mock
-    private RedisTokenBlacklistService blacklistService;
+    private TokenBlacklistService blacklistService;
 
     @Mock
     private JwtUtils jwtUtils;

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chatu - Dwóch Użytkowników</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .user-chat {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .user-chat h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+            border-radius: 4px;
+        }
+        .message {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .message.own {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .message.other {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+        .message-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .message-input button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .message-input button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .status.connected {
+            color: #28a745;
+        }
+        .status.disconnected {
+            color: #dc3545;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .login-section {
+            margin-bottom: 20px;
+        }
+        .login-section input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .login-section button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .login-section button:hover {
+            background-color: #218838;
+        }
+        .user-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #495057;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .success {
+            color: #28a745;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .message-feedback {
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .message-feedback.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .message-feedback.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Chatu - Dwóch Użytkowników</h1>
+    
+    <div class="chat-container">
+        <!-- Użytkownik 1 -->
+        <div class="user-chat">
+            <h3>Użytkownik 1</h3>
+            <div class="login-section" id="loginSection1">
+                <input type="text" id="username1" placeholder="Nazwa użytkownika" />
+                <input type="password" id="password1" placeholder="Hasło" />
+                <button onclick="loginUser(1)">Zaloguj się</button>
+            </div>
+            <div class="chat-section" id="chatSection1" style="display: none;">
+                <div class="user-info" id="userInfo1"></div>
+                <div class="status" id="status1">Rozłączony</div>
+                <div class="chat-messages" id="messages1"></div>
+                <div class="message-input">
+                    <input type="text" id="messageInput1" placeholder="Napisz wiadomość..." />
+                    <button onclick="sendMessage(1)">Wyślij</button>
+                </div>
+                <button onclick="connectToChat(1)" style="margin-top: 10px; width: 100%;">Połącz do chatu</button>
+                <button onclick="logoutUser(1)" style="margin-top: 5px; width: 100%; background-color: #dc3545;">Wyloguj</button>
+            </div>
+        </div>
+
+        <!-- Użytkownik 2 -->
+        <div class="user-chat">
+            <h3>Użytkownik 2</h3>
+            <div class="login-section" id="loginSection2">
+                <input type="text" id="username2" placeholder="Nazwa użytkownika" />
+                <input type="password" id="password2" placeholder="Hasło" />
+                <button onclick="loginUser(2)">Zaloguj się</button>
+            </div>
+            <div class="chat-section" id="chatSection2" style="display: none;">
+                <div class="user-info" id="userInfo2"></div>
+                <div class="status" id="status2">Rozłączony</div>
+                <div class="chat-messages" id="messages2"></div>
+                <div class="message-input">
+                    <input type="text" id="messageInput2" placeholder="Napisz wiadomość..." />
+                    <button onclick="sendMessage(2)">Wyślij</button>
+                </div>
+                <button onclick="connectToChat(2)" style="margin-top: 10px; width: 100%;">Połącz do chatu</button>
+                <button onclick="logoutUser(2)" style="margin-top: 5px; width: 100%; background-color: #dc3545;">Wyloguj</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userSessions = {};
+        const connections = {};
+        
+        async function loginUser(userId) {
+            const username = document.getElementById(`username${userId}`).value.trim();
+            const password = document.getElementById(`password${userId}`).value.trim();
+            
+            if (!username || !password) {
+                showMessage(userId, 'Wprowadź nazwę użytkownika i hasło', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        usernameOrEmail: username,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    userSessions[userId] = {
+                        username: username,
+                        token: data.token || data.accessToken,
+                        userId: userId
+                    };
+                    
+                    showLoginSuccess(userId, username);
+                    showMessage(userId, 'Zalogowano pomyślnie!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    showMessage(userId, `Błąd logowania: ${errorData.message || 'Nieprawidłowe dane'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(userId, 'Błąd połączenia z serwerem', 'error');
+            }
+        }
+
+        function showLoginSuccess(userId, username) {
+            document.getElementById(`loginSection${userId}`).style.display = 'none';
+            document.getElementById(`chatSection${userId}`).style.display = 'block';
+            document.getElementById(`userInfo${userId}`).innerHTML = `Zalogowany jako: <strong>${username}</strong>`;
+        }
+
+        async function logoutUser(userId) {
+            const session = userSessions[userId];
+            if (!session) return;
+
+            try {
+                // Disconnect from chat if connected
+                if (connections[userId]) {
+                    connections[userId].disconnect();
+                    delete connections[userId];
+                }
+
+                // Call logout endpoint
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${session.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Reset UI
+                delete userSessions[userId];
+                document.getElementById(`loginSection${userId}`).style.display = 'block';
+                document.getElementById(`chatSection${userId}`).style.display = 'none';
+                document.getElementById(`username${userId}`).value = '';
+                document.getElementById(`password${userId}`).value = '';
+                document.getElementById(`messages${userId}`).innerHTML = '';
+                updateStatus(userId, 'Rozłączony', false);
+                
+                showMessage(userId, 'Wylogowano pomyślnie', 'success');
+            } catch (error) {
+                console.error('Logout error:', error);
+                showMessage(userId, 'Błąd podczas wylogowywania', 'error');
+            }
+        }
+
+        function connectToChat(userId) {
+            const session = userSessions[userId];
+            if (!session) {
+                showMessage(userId, 'Musisz się najpierw zalogować!', 'error');
+                return;
+            }
+
+            if (connections[userId]) {
+                showMessage(userId, 'Już połączony z chatem!', 'error');
+                return;
+            }
+
+            const socket = new SockJS('http://localhost:8080/ws');
+            const stompClient = Stomp.over(socket);
+            
+            // Add authorization header for WebSocket connection
+            const headers = {
+                'Authorization': `Bearer ${session.token}`
+            };
+            
+            stompClient.connect(headers, function () {
+                console.log(`${session.username} połączony z chatem`);
+                updateStatus(userId, 'Połączony z chatem', true);
+                
+                // Subscribe to user's private message queue
+                console.log(`Subscribing to: /queue/messages-${session.username}`);
+                stompClient.subscribe(`/queue/messages-${session.username}`, function (msg) {
+                    console.log(`Message received:`, msg.body);
+                    const message = JSON.parse(msg.body);
+                    displayMessage(userId, message, session.username);
+                });
+
+                // Subscribe to public announcements
+                console.log('Subscribing to: /topic/public');
+                stompClient.subscribe('/topic/public', function (msg) {
+                    console.log('Message received on /topic/public:', msg.body);
+                    const message = JSON.parse(msg.body);
+                    displayMessage(userId, message, session.username);
+                });
+
+                // Send connect message (backend expects no payload)
+                stompClient.send('/app/connect', {}, '');
+
+                connections[userId] = stompClient;
+                showMessage(userId, 'Połączono z chatem!', 'success');
+            }, function(error) {
+                console.error(`Błąd połączenia chatu dla ${session.username}:`, error);
+                updateStatus(userId, 'Błąd połączenia chatu', false);
+                showMessage(userId, 'Błąd połączenia z chatem. Sprawdź czy token jest ważny.', 'error');
+            });
+        }
+
+        function sendMessage(userId) {
+            const session = userSessions[userId];
+            const stompClient = connections[userId];
+            
+            if (!session) {
+                showMessage(userId, 'Musisz się zalogować!', 'error');
+                return;
+            }
+            
+            if (!stompClient) {
+                showMessage(userId, 'Nie jesteś połączony z chatem!', 'error');
+                return;
+            }
+
+            const messageInput = document.getElementById(`messageInput${userId}`);
+            const content = messageInput.value.trim();
+            
+            if (!content) {
+                return;
+            }
+
+            // Get recipient (for demo, send to the other user)
+            const otherUserId = userId === 1 ? 2 : 1;
+            const otherSession = userSessions[otherUserId];
+            
+            if (!otherSession) {
+                showMessage(userId, 'Drugi użytkownik nie jest zalogowany!', 'error');
+                return;
+            }
+
+            const messageData = {
+                content: content,
+                recipientId: otherSession.username,
+                messageType: 'TEXT'
+            };
+            
+            console.log(`Sending message from ${session.username} to ${otherSession.username}:`, messageData);
+            stompClient.send('/app/sendMessage', {}, JSON.stringify(messageData));
+
+            messageInput.value = '';
+        }
+
+        function showMessage(userId, message, type) {
+            // Remove existing messages
+            const existingMsg = document.querySelector(`#chatSection${userId} .message-feedback, #loginSection${userId} .message-feedback`);
+            if (existingMsg) existingMsg.remove();
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message-feedback ${type}`;
+            msgDiv.textContent = message;
+
+            const section = userSessions[userId] ? 
+                document.getElementById(`chatSection${userId}`) : 
+                document.getElementById(`loginSection${userId}`);
+            section.appendChild(msgDiv);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (msgDiv.parentNode) msgDiv.remove();
+            }, 3000);
+        }
+
+        function displayMessage(userId, message, currentUser) {
+            const messagesContainer1 = document.getElementById('messages1');
+            const messagesContainer2 = document.getElementById('messages2');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            // Handle different message types based on backend structure
+            if (message.messageType === 'CONNECT' || message.messageType === 'JOIN') {
+                messageDiv.innerHTML = `<em>${message.senderUsername || message.sender} dołączył do chatu</em>`;
+                messageDiv.style.color = '#28a745';
+                messageDiv.style.fontStyle = 'italic';
+            } else if (message.messageType === 'DISCONNECT' || message.messageType === 'LEAVE') {
+                messageDiv.innerHTML = `<em>${message.senderUsername || message.sender} opuścił chat</em>`;
+                messageDiv.style.color = '#dc3545';
+                messageDiv.style.fontStyle = 'italic';
+            } else {
+                const senderName = message.senderUsername || message.sender || 'Unknown';
+                messageDiv.innerHTML = `<strong>${senderName}:</strong> ${message.content}`;
+                
+                // Add class for own messages
+                if (senderName === currentUser) {
+                    messageDiv.classList.add('own');
+                } else {
+                    messageDiv.classList.add('other');
+                }
+            }
+            
+            // Add message only to the current user's chat window
+            const currentUserSession = userSessions[userId];
+            const messagesContainer = document.getElementById(`messages${userId}`);
+            
+            // Set appropriate class for current user
+            if (message.messageType === 'TEXT' || message.messageType === 'CHAT') {
+                const senderName = message.senderUsername || message.sender || 'Unknown';
+                messageDiv.className = 'message ' + (senderName === currentUserSession.username ? 'own' : 'other');
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function updateStatus(userId, status, connected) {
+            const statusElement = document.getElementById(`status${userId}`);
+            statusElement.textContent = status;
+            statusElement.className = connected ? 'status connected' : 'status disconnected';
+        }
+
+        // Add Enter key support for login and message inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login inputs
+            document.getElementById('username1').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginUser(1);
+            });
+            document.getElementById('password1').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginUser(1);
+            });
+            document.getElementById('username2').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginUser(2);
+            });
+            document.getElementById('password2').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginUser(2);
+            });
+
+            // Message inputs
+            document.getElementById('messageInput1').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage(1);
+            });
+            document.getElementById('messageInput2').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage(2);
+            });
+        });
+    </script>
+</body>
+</html>

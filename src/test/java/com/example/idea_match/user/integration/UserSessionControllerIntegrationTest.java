@@ -1,7 +1,7 @@
 package com.example.idea_match.user.integration;
 
-import com.example.idea_match.user.jwt.JwtUtils;
-import com.example.idea_match.user.jwt.RedisTokenBlacklistService;
+import com.example.idea_match.shared.security.TokenBlacklistService;
+import com.example.idea_match.shared.security.jwt.JwtUtils;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
@@ -71,7 +71,7 @@ class UserSessionControllerIntegrationTest {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private RedisTokenBlacklistService blacklistService;
+    private TokenBlacklistService blacklistService;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -133,7 +133,7 @@ class UserSessionControllerIntegrationTest {
         assertThat(response.getBody()).isNull();
         
         // Verify token is blacklisted
-        assertThat(blacklistService.isTokenBlacklisted(validToken)).isTrue();
+        assertThat(blacklistService.isBlacklisted(validToken)).isTrue();
     }
 
 

@@ -2,7 +2,7 @@ package com.example.idea_match.user.service;
 
 import com.example.idea_match.user.config.CustomUserDetails;
 import com.example.idea_match.user.dto.LoginRequest;
-import com.example.idea_match.user.jwt.JwtTokenProvider;
+import com.example.idea_match.shared.security.jwt.JwtTokenProvider;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
@@ -15,8 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
