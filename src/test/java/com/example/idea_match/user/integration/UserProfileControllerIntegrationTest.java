@@ -1,5 +1,6 @@
 package com.example.idea_match.user.integration;
 
+import com.example.idea_match.config.TestConfig;
 import com.example.idea_match.user.command.UpdateUserProfileCommand;
 import com.example.idea_match.user.dto.AuthResponse;
 import com.example.idea_match.user.dto.LoginRequest;
@@ -19,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -31,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @ActiveProfiles("test")
 @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Import(TestConfig.class)
 class UserProfileControllerIntegrationTest {
 
     @Container

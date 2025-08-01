@@ -17,6 +17,8 @@ public interface UserMapper {
     @Mapping(target = "profilePictureUrl", ignore = true)
     @Mapping(target = "verificationToken", ignore = true)
     @Mapping(target = "tokenExpirationTime", ignore = true)
+    @Mapping(target = "passwordResetToken", ignore = true)
+    @Mapping(target = "passwordResetTokenExpiry", ignore = true)
     @Mapping(target = "enabled", constant = "false")
     User dtoToEntity(AddUserCommand addUserCommand);
 

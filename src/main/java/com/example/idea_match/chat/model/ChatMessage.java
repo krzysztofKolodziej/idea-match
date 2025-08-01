@@ -52,7 +52,4 @@ public class ChatMessage {
     @Field("deleted")
     @Builder.Default
     private boolean deleted = false;
-
-    @Field("session_id")
-    private String sessionId;
 }
