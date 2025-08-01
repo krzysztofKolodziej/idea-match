@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface ChatMessageRepository extends MongoRepository<ChatMessage, String> {
 
-    @Query("{ 'senderId': { $ne: ?1 }, 'status': { $ne: 'READ' }, 'deleted': false }")
-    List<ChatMessage> findUnreadMessages(String roomId);
+    @Query("{ 'recipientId': ?0, 'status': { $ne: 'READ' }, 'deleted': false }")
+    List<ChatMessage> findUnreadMessages(String userId);
 }

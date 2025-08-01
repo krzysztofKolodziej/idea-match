@@ -24,7 +24,7 @@ public interface ChatMessageMapper {
     @Mapping(target = "deleted", constant = "false")
     @Mapping(target = "readAt", ignore = true)
     @Mapping(target = "deliveredAt", ignore = true)
-    ChatMessage toEntity(SendMessageRequest request, String senderUsername, String sessionId);
+    ChatMessage toEntity(SendMessageRequest request, String senderUsername, String senderId);
 
     ChatMessageResponse toResponse(ChatMessage entity);
 
