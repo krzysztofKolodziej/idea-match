@@ -1,6 +1,6 @@
 package com.example.idea_match.user.model;
 
-
+import com.example.idea_match.idea.model.Idea;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,11 +45,18 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-//    @OneToMany(mappedBy = "owner")
-//    private List<?> ownedProjects = new ArrayList<>();
-//
-//    @ManyToMany(mappedBy = "members")
-//    private List<?> joinedProjects = new ArrayList<>();
+    @OneToMany(mappedBy = "owner")
+    @Builder.Default
+    private List<Idea> ownedProjects = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_idea",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "idea_id")
+    )
+    @Builder.Default
+    private List<Idea> joinedProjects = new ArrayList<>();
 
     private String verificationToken;
 

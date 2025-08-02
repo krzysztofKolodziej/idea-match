@@ -1,4 +1,4 @@
-package com.example.idea_match.config;
+package com.example.idea_match.shared.config;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
