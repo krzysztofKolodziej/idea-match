@@ -1,6 +1,6 @@
 package com.example.idea_match.idea.model;
 
-enum IdeaCategory {
+public enum IdeaCategory {
     TECHNOLOGY,
     BUSINESS,
     CREATIVE,

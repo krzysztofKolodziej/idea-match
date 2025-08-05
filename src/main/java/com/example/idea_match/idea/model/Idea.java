@@ -45,7 +45,7 @@ public class Idea {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    @ManyToMany(mappedBy = "joinedProject")
+    @ManyToMany(mappedBy = "joinedProjects")
     @Builder.Default
     private List<User> collaborators = new ArrayList<>();
 
