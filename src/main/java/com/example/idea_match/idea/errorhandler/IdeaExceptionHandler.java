@@ -1,5 +1,6 @@
 package com.example.idea_match.idea.errorhandler;
 
+import com.example.idea_match.idea.exceptions.IdeaAccessDeniedException;
 import com.example.idea_match.idea.exceptions.IdeaNotFoundException;
 import com.example.idea_match.shared.error.ErrorRespond;
 import lombok.extern.slf4j.Slf4j;
@@ -17,5 +18,12 @@ public class IdeaExceptionHandler {
     public ErrorRespond handleIdeaNotFound(IdeaNotFoundException ex) {
         log.warn("Idea not found: {}", ex.getMessage());
         return new ErrorRespond(HttpStatus.NOT_FOUND, "Idea not found");
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(IdeaAccessDeniedException.class)
+    public ErrorRespond handleIdeaAccessDenied(IdeaAccessDeniedException ex) {
+        log.warn("Idea access denied: {}", ex.getMessage());
+        return new ErrorRespond(HttpStatus.FORBIDDEN, "Access denied: You can only modify your own ideas");
     }
 }

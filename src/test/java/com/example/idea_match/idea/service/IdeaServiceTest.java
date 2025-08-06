@@ -1,7 +1,10 @@
 package com.example.idea_match.idea.service;
 
+import com.example.idea_match.idea.command.AddIdeaCommand;
+import com.example.idea_match.idea.command.UpdateIdeaCommand;
 import com.example.idea_match.idea.dto.IdeaDetailsDto;
 import com.example.idea_match.idea.dto.IdeaDto;
+import com.example.idea_match.idea.exceptions.IdeaAccessDeniedException;
 import com.example.idea_match.idea.exceptions.IdeaNotFoundException;
 import com.example.idea_match.idea.model.Idea;
 import com.example.idea_match.idea.model.IdeaCategory;
@@ -31,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,12 +53,21 @@ class IdeaServiceTest {
     private Idea testIdea;
     private IdeaDto testIdeaDto;
     private IdeaDetailsDto testIdeaDetailsDto;
+    private User testUser;
+    private User anotherUser;
+    private AddIdeaCommand testAddCommand;
+    private UpdateIdeaCommand testUpdateCommand;
 
     @BeforeEach
     void setUp() {
-        User testUser = User.builder()
+        testUser = User.builder()
                 .id(1L)
                 .username("testuser")
+                .build();
+
+        anotherUser = User.builder()
+                .id(2L)
+                .username("anotheruser")
                 .build();
 
         testIdea = Idea.builder()
@@ -69,6 +81,25 @@ class IdeaServiceTest {
                 .owner(testUser)
                 .cratedDate(LocalDateTime.of(2023, 1, 1, 12, 0))
                 .build();
+
+        testAddCommand = new AddIdeaCommand(
+                "New Test Idea",
+                "Krakow",
+                "New test description",
+                "New test goal",
+                IdeaCategory.BUSINESS,
+                LocalDateTime.of(2024, 6, 1, 10, 0)
+        );
+
+        testUpdateCommand = new UpdateIdeaCommand(
+                "Updated Test Idea",
+                "Gdansk",
+                "Updated test description",
+                "Updated test goal",
+                IdeaStatus.PAUSED,
+                IdeaCategory.CREATIVE,
+                LocalDateTime.of(2024, 7, 1, 14, 0)
+        );
 
         testIdeaDto = new IdeaDto(
                 1L,
@@ -158,5 +189,125 @@ class IdeaServiceTest {
                 .isInstanceOf(IdeaNotFoundException.class);
 
         verify(ideaRepository).findById(nonExistentIdeaId);
+    }
+
+    @Test
+    @DisplayName("Should add idea successfully")
+    void shouldAddIdeaSuccessfully() {
+        // given
+        Idea newIdea = Idea.builder()
+                .title("New Test Idea")
+                .location("Krakow")
+                .description("New test description")
+                .goal("New test goal")
+                .status(IdeaStatus.DRAFT)
+                .category(IdeaCategory.BUSINESS)
+                .owner(testUser)
+                .expectedStartDate(LocalDateTime.of(2024, 6, 1, 10, 0))
+                .build();
+
+        when(ideaMapper.toEntity(testAddCommand, testUser)).thenReturn(newIdea);
+        when(ideaRepository.save(newIdea)).thenReturn(newIdea);
+
+        // when
+        ideaService.addIdea(testAddCommand, testUser);
+
+        // then
+        verify(ideaMapper).toEntity(testAddCommand, testUser);
+        verify(ideaRepository).save(newIdea);
+    }
+
+    @Test
+    @DisplayName("Should update idea successfully when user is owner")
+    void shouldUpdateIdeaSuccessfullyWhenUserIsOwner() {
+        // given
+        Long ideaId = 1L;
+        when(ideaRepository.findById(ideaId)).thenReturn(Optional.of(testIdea));
+        when(ideaRepository.save(testIdea)).thenReturn(testIdea);
+
+        // when
+        ideaService.updateIdea(ideaId, testUpdateCommand, testUser);
+
+        // then
+        verify(ideaRepository).findById(ideaId);
+        verify(ideaMapper).updateEntity(testUpdateCommand, testIdea);
+        verify(ideaRepository).save(testIdea);
+    }
+
+    @Test
+    @DisplayName("Should throw IdeaNotFoundException when updating non-existent idea")
+    void shouldThrowIdeaNotFoundExceptionWhenUpdatingNonExistentIdea() {
+        // given
+        Long nonExistentIdeaId = 999L;
+        when(ideaRepository.findById(nonExistentIdeaId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ideaService.updateIdea(nonExistentIdeaId, testUpdateCommand, testUser))
+                .isInstanceOf(IdeaNotFoundException.class);
+
+        verify(ideaRepository).findById(nonExistentIdeaId);
+        verifyNoInteractions(ideaMapper);
+        verify(ideaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw IdeaAccessDeniedException when updating idea not owned by user")
+    void shouldThrowIdeaAccessDeniedExceptionWhenUpdatingIdeaNotOwnedByUser() {
+        // given
+        Long ideaId = 1L;
+        when(ideaRepository.findById(ideaId)).thenReturn(Optional.of(testIdea));
+
+        // when & then
+        assertThatThrownBy(() -> ideaService.updateIdea(ideaId, testUpdateCommand, anotherUser))
+                .isInstanceOf(IdeaAccessDeniedException.class);
+
+        verify(ideaRepository).findById(ideaId);
+        verifyNoInteractions(ideaMapper);
+        verify(ideaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should delete idea successfully when user is owner")
+    void shouldDeleteIdeaSuccessfullyWhenUserIsOwner() {
+        // given
+        Long ideaId = 1L;
+        when(ideaRepository.findById(ideaId)).thenReturn(Optional.of(testIdea));
+
+        // when
+        ideaService.deleteIdea(ideaId, testUser);
+
+        // then
+        verify(ideaRepository).findById(ideaId);
+        verify(ideaRepository).delete(testIdea);
+    }
+
+    @Test
+    @DisplayName("Should throw IdeaNotFoundException when deleting non-existent idea")
+    void shouldThrowIdeaNotFoundExceptionWhenDeletingNonExistentIdea() {
+        // given
+        Long nonExistentIdeaId = 999L;
+        when(ideaRepository.findById(nonExistentIdeaId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ideaService.deleteIdea(nonExistentIdeaId, testUser))
+                .isInstanceOf(IdeaNotFoundException.class);
+
+        verify(ideaRepository).findById(nonExistentIdeaId);
+        verify(ideaRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Should throw IdeaAccessDeniedException when deleting idea not owned by user")
+    void shouldThrowIdeaAccessDeniedExceptionWhenDeletingIdeaNotOwnedByUser() {
+        // given
+        Long ideaId = 1L;
+        when(ideaRepository.findById(ideaId)).thenReturn(Optional.of(testIdea));
+
+        // when & then
+        assertThatThrownBy(() -> ideaService.deleteIdea(ideaId, anotherUser))
+                .isInstanceOf(IdeaAccessDeniedException.class);
+
+        verify(ideaRepository).findById(ideaId);
+        verify(ideaRepository, never()).delete(any());
     }
 }
