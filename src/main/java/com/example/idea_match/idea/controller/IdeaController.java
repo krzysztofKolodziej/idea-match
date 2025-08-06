@@ -1,16 +1,14 @@
 package com.example.idea_match.idea.controller;
 
 
+import com.example.idea_match.idea.dto.IdeaDetailsDto;
 import com.example.idea_match.idea.dto.IdeaDto;
 import com.example.idea_match.idea.service.IdeaService;
 import com.example.idea_match.shared.filter.PaginationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RequestMapping("api/")
@@ -33,6 +31,11 @@ public class IdeaController {
         return ResponseEntity.ok(ideas);
     }
 
+    @GetMapping("ideas/{id}")
+    public ResponseEntity<IdeaDetailsDto> getIdeaDetails(@PathVariable Long id) {
+        IdeaDetailsDto ideaDetails = ideaService.getIdeaDetails(id);
+        return ResponseEntity.ok(ideaDetails);
+    }
 
 
 }

@@ -1,6 +1,8 @@
 package com.example.idea_match.idea.service;
 
+import com.example.idea_match.idea.dto.IdeaDetailsDto;
 import com.example.idea_match.idea.dto.IdeaDto;
+import com.example.idea_match.idea.exceptions.IdeaNotFoundException;
 import com.example.idea_match.idea.model.Idea;
 import com.example.idea_match.idea.repository.IdeaRepository;
 import com.example.idea_match.shared.filter.PaginationRequest;
@@ -18,13 +20,13 @@ import static io.github.perplexhub.rsql.RSQLJPASupport.toSort;
 import static io.github.perplexhub.rsql.RSQLJPASupport.toSpecification;
 
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 @Service
 public class IdeaService {
 
     private final IdeaRepository ideaRepository;
     private final IdeaMapper ideaMapper;
 
-    @Transactional(readOnly = true)
     public PagedModel<IdeaDto> getAllIdeas(PaginationRequest request) {
         final Specification<Idea> sortSpecification = toSort(request.sort());
         final Specification<Idea> filterSpecification = toSpecification(request.filter(), PREDICATES);
@@ -40,13 +42,19 @@ public class IdeaService {
         return PagedModel.of(ideas, metadata);
     }
 
+    public IdeaDetailsDto getIdeaDetails(Long id) {
+        Idea idea = ideaRepository.findById(id)
+                .orElseThrow(IdeaNotFoundException::new);
+
+        return ideaMapper.toDtoWithDetails(idea);
+    }
+
     private static PagedModel.PageMetadata getPageMetadata(Page<Idea> page) {
-        PagedModel.PageMetadata metadata = new PagedModel.PageMetadata(
+        return new PagedModel.PageMetadata(
                 page.getSize(),
                 page.getNumber(),
                 page.getTotalElements(),
                 page.getTotalPages()
         );
-        return metadata;
     }
 }
