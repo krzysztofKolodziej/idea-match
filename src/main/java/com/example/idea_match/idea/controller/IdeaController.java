@@ -7,7 +7,7 @@ import com.example.idea_match.idea.dto.IdeaDetailsDto;
 import com.example.idea_match.idea.dto.IdeaDto;
 import com.example.idea_match.idea.service.IdeaService;
 import com.example.idea_match.shared.filter.PaginationRequest;
-import com.example.idea_match.user.config.CustomUserDetails;
+import com.example.idea_match.shared.security.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.PagedModel;

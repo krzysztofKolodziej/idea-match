@@ -1,6 +1,6 @@
 package com.example.idea_match.user.service;
 
-import com.example.idea_match.user.config.CustomUserDetails;
+import com.example.idea_match.shared.security.auth.CustomUserDetails;
 import com.example.idea_match.user.dto.LoginRequest;
 import com.example.idea_match.shared.security.jwt.JwtTokenProvider;
 import com.example.idea_match.user.model.Role;

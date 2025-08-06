@@ -2,7 +2,7 @@ package com.example.idea_match.shared.security.jwt;
 
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.example.idea_match.user.config.CustomUserDetailsService;
+import com.example.idea_match.shared.security.auth.CustomUserDetailsService;
 import com.example.idea_match.user.exceptions.BlackListedTokenException;
 import com.example.idea_match.user.exceptions.InvalidJwtTokenException;
 import com.example.idea_match.shared.security.TokenBlacklistService;
