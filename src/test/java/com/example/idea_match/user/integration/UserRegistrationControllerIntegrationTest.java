@@ -1,6 +1,6 @@
 package com.example.idea_match.user.integration;
 
-import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.command.RegisterUserCommand;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,22 +52,20 @@ class UserRegistrationControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
-    private AddUserCommand validCommand;
+    private RegisterUserCommand validCommand;
     private HttpHeaders headers;
 
     @BeforeEach
     void setUp() {
         // Database is cleaned by @Sql annotation
         
-        validCommand = new AddUserCommand(
-                "John",
-                "Doe",
+        validCommand = new RegisterUserCommand(
                 "johndoe",
                 "k.kolodziej2212@gmail.com",
-                "+48123456789",
-                "Warsaw",
-                "Software developer",
-                "Password123!"
+                "Password123!",
+                "John",
+                "Doe",
+                "+48123456789"
         );
 
         headers = new HttpHeaders();
@@ -77,7 +75,7 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldRegisterUserSuccessfully() {
         // given
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(validCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -117,7 +115,7 @@ class UserRegistrationControllerIntegrationTest {
                 .tokenExpirationTime(LocalDateTime.now().plusHours(24))
                 .build());
 
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(validCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -144,7 +142,7 @@ class UserRegistrationControllerIntegrationTest {
                 .tokenExpirationTime(LocalDateTime.now().plusHours(24))
                 .build());
 
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(validCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -158,18 +156,16 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldReturnBadRequestForInvalidEmail() {
         // given
-        AddUserCommand invalidCommand = new AddUserCommand(
-                "John",
-                "Doe",
+        RegisterUserCommand invalidCommand = new RegisterUserCommand(
                 "johndoe",
                 "invalid-email", // invalid email format
-                "+48123456789",
-                "Warsaw",
-                "Software developer",
-                "Password123!"
+                "Password123!",
+                "John",
+                "Doe",
+                "+48123456789"
         );
 
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(invalidCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(invalidCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -183,18 +179,16 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldReturnBadRequestForEmptyFields() {
         // given
-        AddUserCommand invalidCommand = new AddUserCommand(
-                "", // empty first name
-                "Doe",
+        RegisterUserCommand invalidCommand = new RegisterUserCommand(
                 "johndoe",
                 "k.kolodziej2212@gmail.com",
-                "+48123456789",
-                "Warsaw",
-                "Software developer",
-                "" // empty password
+                "", // empty password
+                "", // empty first name
+                "Doe",
+                "+48123456789"
         );
 
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(invalidCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(invalidCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -208,25 +202,23 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldHandleMultipleValidRegistrations() {
         // given
-        AddUserCommand secondCommand = new AddUserCommand(
-                "Jane",
-                "Smith",
+        RegisterUserCommand secondCommand = new RegisterUserCommand(
                 "janesmith",
                 "idea.match.contact@gmail.com",
-                "+48987654321",
-                "Krakow",
-                "Designer",
-                "Password456!"
+                "Password456!",
+                "Jane",
+                "Smith",
+                "+48987654321"
         );
 
         String url = "http://localhost:" + port + "/api/registration";
 
         // when - register first user
-        HttpEntity<AddUserCommand> firstRequest = new HttpEntity<>(validCommand, headers);
+        HttpEntity<RegisterUserCommand> firstRequest = new HttpEntity<>(validCommand, headers);
         ResponseEntity<String> firstResponse = restTemplate.postForEntity(url, firstRequest, String.class);
 
         // when - register second user
-        HttpEntity<AddUserCommand> secondRequest = new HttpEntity<>(secondCommand, headers);
+        HttpEntity<RegisterUserCommand> secondRequest = new HttpEntity<>(secondCommand, headers);
         ResponseEntity<String> secondResponse = restTemplate.postForEntity(url, secondRequest, String.class);
 
         // then
@@ -245,14 +237,16 @@ class UserRegistrationControllerIntegrationTest {
         xmlHeaders.setContentType(MediaType.APPLICATION_XML);
         String url = "http://localhost:" + port + "/api/registration";
 
-        // when & then - TestRestTemplate throws exception when content type is not supported
+        // when
         try {
-            HttpEntity<String> request = new HttpEntity<>("{\"test\":\"data\"}", xmlHeaders);
+            HttpEntity<String> request = new HttpEntity<>("<test>data</test>", xmlHeaders);
             ResponseEntity<Void> response = restTemplate.postForEntity(url, request, Void.class);
+            
+            // then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
-        } catch (org.springframework.web.client.RestClientException e) {
-            // Expected exception for unsupported content type
-            assertThat(e.getMessage()).contains("No HttpMessageConverter");
+        } catch (org.springframework.web.client.HttpClientErrorException ex) {
+            // TestRestTemplate may throw exception for 4xx status codes
+            assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         }
         
         assertThat(userRepository.count()).isEqualTo(0);
@@ -261,18 +255,16 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldValidatePhoneNumberFormat() {
         // given
-        AddUserCommand validPhoneCommand = new AddUserCommand(
-                "John",
-                "Doe",
+        RegisterUserCommand validPhoneCommand = new RegisterUserCommand(
                 "johndoe",
                 "idea.match.contact@gmail.com",
-                "+15551234567",
-                "Warsaw",
-                "Software developer",
-                "Password123!"
+                "Password123!",
+                "John",
+                "Doe",
+                "+15551234567"
         );
 
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(validPhoneCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(validPhoneCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -289,7 +281,7 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldEncodePasswordProperly() {
         // given
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(validCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when
@@ -309,7 +301,7 @@ class UserRegistrationControllerIntegrationTest {
     @Test
     void shouldGenerateVerificationTokenAndExpirationTime() {
         // given
-        HttpEntity<AddUserCommand> request = new HttpEntity<>(validCommand, headers);
+        HttpEntity<RegisterUserCommand> request = new HttpEntity<>(validCommand, headers);
         String url = "http://localhost:" + port + "/api/registration";
 
         // when

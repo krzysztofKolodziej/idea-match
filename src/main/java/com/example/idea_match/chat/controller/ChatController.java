@@ -1,7 +1,9 @@
 package com.example.idea_match.chat.controller;
 
 import com.example.idea_match.chat.dto.ChatMessageResponse;
-import com.example.idea_match.chat.dto.SendMessageRequest;
+import com.example.idea_match.chat.command.SendMessageCommand;
+import com.example.idea_match.chat.command.MarkMessageReadCommand;
+import com.example.idea_match.chat.command.MarkMessageDeliveredCommand;
 import com.example.idea_match.chat.exceptions.UserNotAuthenticatedException;
 import com.example.idea_match.chat.service.MessageService;
 import com.example.idea_match.chat.service.MessageStatusService;
@@ -33,28 +35,28 @@ public class ChatController {
     private final UserConnectionService userConnectionService;
 
     @MessageMapping("/sendMessage")
-    public void sendMessage(@Valid @Payload SendMessageRequest request, SimpMessageHeaderAccessor headerAccessor) {
+    public void sendMessage(@Valid @Payload SendMessageCommand command, SimpMessageHeaderAccessor headerAccessor) {
         validateAuthenticated(headerAccessor);
 
         String username = Objects.requireNonNull(headerAccessor.getUser()).getName();
         String senderId = extractUserIdFromSession(headerAccessor);
 
-        messageService.sendMessage(request, senderId, username);
+        messageService.sendMessage(command, senderId, username);
     }
 
     @MessageMapping("/markAsRead")
-    public void markMessageAsRead(@Payload String messageId, SimpMessageHeaderAccessor headerAccessor) {
+    public void markMessageAsRead(@Valid @Payload MarkMessageReadCommand command, SimpMessageHeaderAccessor headerAccessor) {
         validateAuthenticated(headerAccessor);
 
         String userId = extractUserIdFromSession(headerAccessor);
-        messageStatusService.markMessageAsRead(messageId, userId);
+        messageStatusService.markMessageAsRead(command, userId);
     }
 
     @MessageMapping("/markAsDelivered")
-    public void markMessageAsDelivered(@Payload String messageId, SimpMessageHeaderAccessor headerAccessor) {
+    public void markMessageAsDelivered(@Valid @Payload MarkMessageDeliveredCommand command, SimpMessageHeaderAccessor headerAccessor) {
         validateAuthenticated(headerAccessor);
 
-        messageStatusService.markMessageAsDelivered(messageId);
+        messageStatusService.markMessageAsDelivered(command);
     }
 
     @MessageMapping("/connect")

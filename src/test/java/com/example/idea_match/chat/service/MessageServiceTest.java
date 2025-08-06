@@ -1,7 +1,7 @@
 package com.example.idea_match.chat.service;
 
 import com.example.idea_match.chat.dto.ChatMessageResponse;
-import com.example.idea_match.chat.dto.SendMessageRequest;
+import com.example.idea_match.chat.command.SendMessageCommand;
 import com.example.idea_match.chat.exceptions.ChatMessageException;
 import com.example.idea_match.chat.kafka.KafkaSender;
 import com.example.idea_match.chat.mapper.ChatMessageMapper;
@@ -43,14 +43,16 @@ class MessageServiceTest {
     @InjectMocks
     private MessageService messageService;
 
-    private SendMessageRequest sendMessageRequest;
+    private SendMessageCommand sendMessageCommand;
     private ChatMessage testMessage;
 
     @BeforeEach
     void setUp() {
-        sendMessageRequest = new SendMessageRequest();
-        sendMessageRequest.setRecipientId("recipient-id");
-        sendMessageRequest.setContent("Test message content");
+        sendMessageCommand = new SendMessageCommand(
+                "Test message content",
+                "recipient-id", 
+                MessageType.TEXT
+        );
 
         testMessage = new ChatMessage();
         testMessage.setId("message-id");
@@ -72,14 +74,14 @@ class MessageServiceTest {
     @Test
     @DisplayName("Should send message successfully")
     void shouldSendMessageSuccessfully() {
-        when(chatMessageMapper.toEntity(sendMessageRequest, "sender-id", "senderUsername"))
+        when(chatMessageMapper.toEntity(sendMessageCommand, "sender-id", "senderUsername"))
                 .thenReturn(testMessage);
         when(chatMessageRepository.save(testMessage))
                 .thenReturn(testMessage);
 
-        messageService.sendMessage(sendMessageRequest, "sender-id", "senderUsername");
+        messageService.sendMessage(sendMessageCommand, "sender-id", "senderUsername");
 
-        verify(chatMessageMapper).toEntity(sendMessageRequest, "sender-id", "senderUsername");
+        verify(chatMessageMapper).toEntity(sendMessageCommand, "sender-id", "senderUsername");
         verify(chatMessageRepository).save(testMessage);
         verify(kafkaSender).send("messaging", testMessage);
     }
@@ -87,11 +89,11 @@ class MessageServiceTest {
     @Test
     @DisplayName("Should throw exception when mapper returns null")
     void shouldThrowExceptionWhenMapperReturnsNull() {
-        when(chatMessageMapper.toEntity(sendMessageRequest, "sender-id", "senderUsername"))
+        when(chatMessageMapper.toEntity(sendMessageCommand, "sender-id", "senderUsername"))
                 .thenReturn(null);
 
         assertThatThrownBy(() -> 
-                messageService.sendMessage(sendMessageRequest, "sender-id", "senderUsername"))
+                messageService.sendMessage(sendMessageCommand, "sender-id", "senderUsername"))
                 .isInstanceOf(ChatMessageException.class);
 
         verify(chatMessageRepository, never()).save(any());
@@ -141,12 +143,12 @@ class MessageServiceTest {
     @Test
     @DisplayName("Should handle kafka sending after successful save")
     void shouldHandleKafkaSendingAfterSuccessfulSave() {
-        when(chatMessageMapper.toEntity(sendMessageRequest, "sender-id", "senderUsername"))
+        when(chatMessageMapper.toEntity(sendMessageCommand, "sender-id", "senderUsername"))
                 .thenReturn(testMessage);
         when(chatMessageRepository.save(testMessage))
                 .thenReturn(testMessage);
 
-        messageService.sendMessage(sendMessageRequest, "sender-id", "senderUsername");
+        messageService.sendMessage(sendMessageCommand, "sender-id", "senderUsername");
 
         verify(chatMessageRepository).save(testMessage);
         verify(kafkaSender).send(eq("messaging"), eq(testMessage));
@@ -155,12 +157,12 @@ class MessageServiceTest {
     @Test
     @DisplayName("Should use correct topic for kafka message")
     void shouldUseCorrectTopicForKafkaMessage() {
-        when(chatMessageMapper.toEntity(sendMessageRequest, "sender-id", "senderUsername"))
+        when(chatMessageMapper.toEntity(sendMessageCommand, "sender-id", "senderUsername"))
                 .thenReturn(testMessage);
         when(chatMessageRepository.save(testMessage))
                 .thenReturn(testMessage);
 
-        messageService.sendMessage(sendMessageRequest, "sender-id", "senderUsername");
+        messageService.sendMessage(sendMessageCommand, "sender-id", "senderUsername");
 
         verify(kafkaSender).send("messaging", testMessage);
     }

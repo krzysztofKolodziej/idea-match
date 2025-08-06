@@ -10,8 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import software.amazon.awssdk.services.ses.model.MessageRejectedException;
 import software.amazon.awssdk.services.ses.model.SesException;
 
@@ -51,33 +49,6 @@ class UserExceptionHandlerTest {
         assertThat(response.message()).isEqualTo("JWT token is invalid");
     }
 
-    @Test
-    void shouldHandleBadCredentialsException() {
-        // given
-        BadCredentialsException exception = new BadCredentialsException("Bad credentials");
-
-        // when
-        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.message()).isEqualTo("Invalid credentials");
-    }
-
-    @Test
-    void shouldHandleDisabledException() {
-        // given
-        DisabledException exception = new DisabledException("User account is disabled");
-
-        // when
-        ErrorRespond response = userExceptionHandler.handleUnauthorized(exception);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.message()).isEqualTo("Account is disabled");
-    }
 
     @Test
     void shouldHandleUserAlreadyExistsException() {

@@ -1,6 +1,6 @@
 package com.example.idea_match.user.service;
 
-import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.command.RegisterUserCommand;
 import com.example.idea_match.user.command.UpdateUserProfileCommand;
 import com.example.idea_match.user.dto.UserResponse;
 import com.example.idea_match.user.model.User;
@@ -20,7 +20,7 @@ public interface UserMapper {
     @Mapping(target = "passwordResetToken", ignore = true)
     @Mapping(target = "passwordResetTokenExpiry", ignore = true)
     @Mapping(target = "enabled", constant = "false")
-    User dtoToEntity(AddUserCommand addUserCommand);
+    User commandToEntity(RegisterUserCommand registerUserCommand);
 
     @Mapping(target = "userId", source = "id")
     UserResponse entityToDto(User user);

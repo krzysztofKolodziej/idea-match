@@ -1,6 +1,6 @@
 package com.example.idea_match.user.command.validation;
 
-import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.command.RegisterUserCommand;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -28,20 +28,20 @@ class PhoneNumberValidationTest {
     @ValueSource(strings = {
             "+48123456789",
             "+1234567890",
-            "+12345678901234",
-            "+999999999999999",
+            "+123456789012",
+            "+99999999999",
             "123456789",
-            "1234567890123456"
+            "1234567890123"
     })
     void shouldAcceptValidPhoneNumbers(String phoneNumber) {
         // given
-        AddUserCommand command = createValidCommand(phoneNumber);
+        RegisterUserCommand command = createValidCommand(phoneNumber);
 
         // when
-        Set<ConstraintViolation<AddUserCommand>> violations = validator.validate(command);
+        Set<ConstraintViolation<RegisterUserCommand>> violations = validator.validate(command);
 
         // then
-        Set<ConstraintViolation<AddUserCommand>> phoneViolations = violations.stream()
+        Set<ConstraintViolation<RegisterUserCommand>> phoneViolations = violations.stream()
                 .filter(v -> v.getPropertyPath().toString().equals("phoneNumber"))
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -63,13 +63,13 @@ class PhoneNumberValidationTest {
     })
     void shouldRejectInvalidPhoneNumbers(String phoneNumber) {
         // given
-        AddUserCommand command = createValidCommand(phoneNumber);
+        RegisterUserCommand command = createValidCommand(phoneNumber);
 
         // when
-        Set<ConstraintViolation<AddUserCommand>> violations = validator.validate(command);
+        Set<ConstraintViolation<RegisterUserCommand>> violations = validator.validate(command);
 
         // then
-        Set<ConstraintViolation<AddUserCommand>> phoneViolations = violations.stream()
+        Set<ConstraintViolation<RegisterUserCommand>> phoneViolations = violations.stream()
                 .filter(v -> v.getPropertyPath().toString().equals("phoneNumber"))
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -81,13 +81,13 @@ class PhoneNumberValidationTest {
     @Test
     void shouldAcceptPhoneNumberWithMinimumLength() {
         // given - minimum valid international number (2 digits after country code)
-        AddUserCommand command = createValidCommand("+122");
+        RegisterUserCommand command = createValidCommand("+122");
 
         // when
-        Set<ConstraintViolation<AddUserCommand>> violations = validator.validate(command);
+        Set<ConstraintViolation<RegisterUserCommand>> violations = validator.validate(command);
 
         // then
-        Set<ConstraintViolation<AddUserCommand>> phoneViolations = violations.stream()
+        Set<ConstraintViolation<RegisterUserCommand>> phoneViolations = violations.stream()
                 .filter(v -> v.getPropertyPath().toString().equals("phoneNumber"))
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -96,14 +96,14 @@ class PhoneNumberValidationTest {
 
     @Test
     void shouldAcceptPhoneNumberWithMaximumLength() {
-        // given - maximum valid international number (15 digits total)
-        AddUserCommand command = createValidCommand("+123456789012345");
+        // given - maximum valid international number (14 digits after first)
+        RegisterUserCommand command = createValidCommand("+12345678901234");
 
         // when
-        Set<ConstraintViolation<AddUserCommand>> violations = validator.validate(command);
+        Set<ConstraintViolation<RegisterUserCommand>> violations = validator.validate(command);
 
         // then
-        Set<ConstraintViolation<AddUserCommand>> phoneViolations = violations.stream()
+        Set<ConstraintViolation<RegisterUserCommand>> phoneViolations = violations.stream()
                 .filter(v -> v.getPropertyPath().toString().equals("phoneNumber"))
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -111,30 +111,26 @@ class PhoneNumberValidationTest {
     }
 
     @Test
-    void shouldRejectNullPhoneNumber() {
+    void shouldAcceptNullPhoneNumber() {
         // given
-        AddUserCommand command = new AddUserCommand(
-                "John",
-                "Doe",
+        RegisterUserCommand command = new RegisterUserCommand(
                 "johndoe",
                 "john@example.com",
-                null, // null phone number
-                "Warsaw",
-                "Software developer",
-                "Password123!"
+                "Password123!",
+                "John",
+                "Doe",
+                null // null phone number should be allowed
         );
 
         // when
-        Set<ConstraintViolation<AddUserCommand>> violations = validator.validate(command);
+        Set<ConstraintViolation<RegisterUserCommand>> violations = validator.validate(command);
 
         // then
-        Set<ConstraintViolation<AddUserCommand>> phoneViolations = violations.stream()
+        Set<ConstraintViolation<RegisterUserCommand>> phoneViolations = violations.stream()
                 .filter(v -> v.getPropertyPath().toString().equals("phoneNumber"))
                 .collect(java.util.stream.Collectors.toSet());
 
-        assertThat(phoneViolations).isNotEmpty();
-        // Should have both @NotBlank and @Pattern violations
-        assertThat(phoneViolations).hasSizeGreaterThanOrEqualTo(1);
+        assertThat(phoneViolations).isEmpty(); // null should be accepted
     }
 
     @Test
@@ -153,11 +149,11 @@ class PhoneNumberValidationTest {
 
         for (String phoneNumber : validNumbers) {
             // when
-            AddUserCommand command = createValidCommand(phoneNumber);
-            Set<ConstraintViolation<AddUserCommand>> violations = validator.validate(command);
+            RegisterUserCommand command = createValidCommand(phoneNumber);
+            Set<ConstraintViolation<RegisterUserCommand>> violations = validator.validate(command);
 
             // then
-            Set<ConstraintViolation<AddUserCommand>> phoneViolations = violations.stream()
+            Set<ConstraintViolation<RegisterUserCommand>> phoneViolations = violations.stream()
                     .filter(v -> v.getPropertyPath().toString().equals("phoneNumber"))
                     .collect(java.util.stream.Collectors.toSet());
 
@@ -167,16 +163,14 @@ class PhoneNumberValidationTest {
         }
     }
 
-    private AddUserCommand createValidCommand(String phoneNumber) {
-        return new AddUserCommand(
-                "John",
-                "Doe",
+    private RegisterUserCommand createValidCommand(String phoneNumber) {
+        return new RegisterUserCommand(
                 "johndoe",
                 "john@example.com",
-                phoneNumber,
-                "Warsaw",
-                "Software developer",
-                "Password123!"
+                "Password123!",
+                "John",
+                "Doe",
+                phoneNumber
         );
     }
 }

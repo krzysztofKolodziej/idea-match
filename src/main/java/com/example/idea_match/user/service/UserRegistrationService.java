@@ -1,6 +1,6 @@
 package com.example.idea_match.user.service;
 
-import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.command.RegisterUserCommand;
 import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
 import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.User;
@@ -24,16 +24,16 @@ public class UserRegistrationService {
     private final TokenService tokenService;
 
     @Transactional
-    public void userRegistration(AddUserCommand addUserCommand) {
+    public void userRegistration(RegisterUserCommand registerUserCommand) {
         if (userRepository.existsByUsernameOrEmailOrPhoneNumber(
-                addUserCommand.username(),
-                addUserCommand.email(),
-                addUserCommand.phoneNumber()
+                registerUserCommand.username(),
+                registerUserCommand.email(),
+                registerUserCommand.phoneNumber()
         )){
             throw new UserAlreadyExistsException("Provided user, email or phone number exist");
         }
 
-        User mappedUser = userMapper.dtoToEntity(addUserCommand);
+        User mappedUser = userMapper.commandToEntity(registerUserCommand);
         User userWithEncoderPassword = setPasswordEncoder(mappedUser);
         User finalUser = tokenService
                 .createVerificationToken(userWithEncoderPassword, LocalDateTime.now().plusHours(24));

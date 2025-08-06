@@ -1,7 +1,13 @@
 package com.example.idea_match.user.service;
 
 import com.example.idea_match.shared.security.auth.CustomUserDetails;
-import com.example.idea_match.user.dto.LoginRequest;
+import com.example.idea_match.user.command.LoginCommand;
+import com.example.idea_match.user.command.ForgotPasswordCommand;
+import com.example.idea_match.user.command.ResetPasswordCommand;
+import com.example.idea_match.user.event.PasswordResetCompletedEvent;
+import com.example.idea_match.user.event.PasswordResetRequestedEvent;
+import com.example.idea_match.user.exceptions.InvalidTokenException;
+import org.springframework.context.ApplicationEventPublisher;
 import com.example.idea_match.shared.security.jwt.JwtTokenProvider;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
@@ -45,16 +51,22 @@ class UserAuthenticationServiceTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Mock
+    private TokenService tokenService;
+
     @InjectMocks
     private UserAuthenticationService userAuthenticationService;
 
-    private LoginRequest loginRequest;
+    private LoginCommand loginCommand;
     private User testUser;
     private CustomUserDetails customUserDetails;
 
     @BeforeEach
     void setUp() {
-        loginRequest = new LoginRequest("johndoe", "password123");
+        loginCommand = new LoginCommand("johndoe", "password123");
         
         testUser = User.builder()
                 .id(1L)
@@ -85,7 +97,7 @@ class UserAuthenticationServiceTest {
         when(jwtTokenProvider.createAccessToken(testUser)).thenReturn("jwt-token");
 
         // when
-        String result = userAuthenticationService.login(loginRequest);
+        String result = userAuthenticationService.login(loginCommand);
 
         // then
         assertThat(result).isEqualTo("jwt-token");
@@ -105,14 +117,14 @@ class UserAuthenticationServiceTest {
     @DisplayName("Should create authentication token with correct parameters")
     void shouldCreateAuthenticationTokenWithCorrectParameters() {
         // given
-        LoginRequest customLoginRequest = new LoginRequest("testuser", "testpass");
+        LoginCommand customLoginCommand = new LoginCommand("testuser", "testpass");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(customUserDetails);
         when(jwtTokenProvider.createAccessToken(any())).thenReturn("test-token");
 
         // when
-        userAuthenticationService.login(customLoginRequest);
+        userAuthenticationService.login(customLoginCommand);
 
         // then
         ArgumentCaptor<UsernamePasswordAuthenticationToken> tokenCaptor = 
@@ -123,6 +135,80 @@ class UserAuthenticationServiceTest {
         assertThat(capturedToken.getPrincipal()).isEqualTo("testuser");
         assertThat(capturedToken.getCredentials()).isEqualTo("testpass");
         assertThat(capturedToken.getAuthorities()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should initiate password reset successfully")
+    void shouldInitiatePasswordResetSuccessfully() {
+        // given
+        ForgotPasswordCommand command = new ForgotPasswordCommand("john@example.com");
+        when(userRepository.findByEmail("john@example.com")).thenReturn(java.util.Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // when
+        userAuthenticationService.initiatePasswordReset(command);
+
+        // then
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        
+        User savedUser = userCaptor.getValue();
+        assertThat(savedUser.getPasswordResetToken()).isNotNull();
+        assertThat(savedUser.getPasswordResetTokenExpiry()).isNotNull();
+        
+        verify(applicationEventPublisher).publishEvent(any(PasswordResetRequestedEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should reset password successfully")
+    void shouldResetPasswordSuccessfully() {
+        // given
+        String resetToken = "reset-token";
+        String newPassword = "newPassword123";
+        ResetPasswordCommand command = new ResetPasswordCommand(resetToken, newPassword);
+        
+        testUser.setPasswordResetToken(resetToken);
+        testUser.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        
+        when(userRepository.findByPasswordResetToken(resetToken)).thenReturn(java.util.Optional.of(testUser));
+        when(passwordEncoder.encode(newPassword)).thenReturn("encodedNewPassword");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // when
+        userAuthenticationService.resetPassword(command);
+
+        // then
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        
+        User savedUser = userCaptor.getValue();
+        assertThat(savedUser.getPassword()).isEqualTo("encodedNewPassword");
+        assertThat(savedUser.getPasswordResetToken()).isNull();
+        assertThat(savedUser.getPasswordResetTokenExpiry()).isNull();
+        
+        verify(applicationEventPublisher).publishEvent(any(PasswordResetCompletedEvent.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception for expired reset token")
+    void shouldThrowExceptionForExpiredResetToken() {
+        // given
+        String resetToken = "expired-token";
+        String newPassword = "newPassword123";
+        ResetPasswordCommand command = new ResetPasswordCommand(resetToken, newPassword);
+        
+        testUser.setPasswordResetToken(resetToken);
+        testUser.setPasswordResetTokenExpiry(LocalDateTime.now().minusHours(1)); // expired
+        
+        when(userRepository.findByPasswordResetToken(resetToken)).thenReturn(java.util.Optional.of(testUser));
+
+        // when & then
+        assertThatThrownBy(() -> userAuthenticationService.resetPassword(command))
+                .isInstanceOf(InvalidTokenException.class)
+                .hasMessage("Reset token has expired");
+        
+        verify(userRepository, never()).save(any());
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
 }

@@ -1,5 +1,7 @@
 package com.example.idea_match.chat.service;
 
+import com.example.idea_match.chat.command.MarkMessageDeliveredCommand;
+import com.example.idea_match.chat.command.MarkMessageReadCommand;
 import com.example.idea_match.chat.exceptions.NotFoundMessageException;
 import com.example.idea_match.chat.mapper.ChatMessageMapper;
 import com.example.idea_match.chat.model.ChatMessage;
@@ -23,8 +25,8 @@ public class MessageStatusService {
     private final ChatMessageMapper chatMessageMapper;
     private final SimpMessageSendingOperations messagingTemplate;
 
-    public void markMessageAsRead(String messageId, String userId) {
-        ChatMessage chatMessage = chatMessageRepository.findById(messageId)
+    public void markMessageAsRead(MarkMessageReadCommand command, String userId) {
+        ChatMessage chatMessage = chatMessageRepository.findById(command.messageId())
                 .filter(message -> message.getRecipientId().equals(userId))
                 .orElseThrow(NotFoundMessageException::new);
 
@@ -35,8 +37,8 @@ public class MessageStatusService {
         notifyMessageStatusUpdate(updatedMessage);
     }
 
-    public void markMessageAsDelivered(String messageId) {
-        ChatMessage chatMessage = chatMessageRepository.findById(messageId)
+    public void markMessageAsDelivered(MarkMessageDeliveredCommand command) {
+        ChatMessage chatMessage = chatMessageRepository.findById(command.messageId())
                 .orElseThrow(NotFoundMessageException::new);
 
         chatMessage.setStatus(MessageStatus.DELIVERED);

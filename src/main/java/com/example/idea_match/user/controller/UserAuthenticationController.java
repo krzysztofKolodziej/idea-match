@@ -2,9 +2,9 @@ package com.example.idea_match.user.controller;
 
 
 import com.example.idea_match.user.dto.AuthResponse;
-import com.example.idea_match.user.dto.ForgotPasswordRequest;
-import com.example.idea_match.user.dto.LoginRequest;
-import com.example.idea_match.user.dto.ResetPasswordRequest;
+import com.example.idea_match.user.command.ForgotPasswordCommand;
+import com.example.idea_match.user.command.LoginCommand;
+import com.example.idea_match.user.command.ResetPasswordCommand;
 import com.example.idea_match.user.service.UserAuthenticationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -23,15 +23,15 @@ public class UserAuthenticationController {
     private final UserAuthenticationService userAuthenticationService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
-        String token = userAuthenticationService.login(loginRequest);
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginCommand loginCommand) {
+        String token = userAuthenticationService.login(loginCommand);
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
     @PostMapping("auth/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
-        log.info("Password reset request for email: {}", request.getEmail());
-        userAuthenticationService.initiatePasswordReset(request.getEmail());
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordCommand command) {
+        log.info("Password reset request for email: {}", command.email());
+        userAuthenticationService.initiatePasswordReset(command);
         return ResponseEntity.accepted().build();
     }
 
@@ -43,9 +43,9 @@ public class UserAuthenticationController {
     }
 
     @PostMapping("auth/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordCommand command) {
         log.info("Password reset attempt with token");
-        userAuthenticationService.resetPassword(request.getToken(), request.getNewPassword());
+        userAuthenticationService.resetPassword(command);
         return ResponseEntity.ok().build();
     }
 }

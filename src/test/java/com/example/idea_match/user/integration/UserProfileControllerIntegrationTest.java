@@ -3,7 +3,7 @@ package com.example.idea_match.user.integration;
 import com.example.idea_match.config.TestConfig;
 import com.example.idea_match.user.command.UpdateUserProfileCommand;
 import com.example.idea_match.user.dto.AuthResponse;
-import com.example.idea_match.user.dto.LoginRequest;
+import com.example.idea_match.user.command.LoginCommand;
 import com.example.idea_match.user.dto.UserResponse;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
@@ -360,11 +360,11 @@ class UserProfileControllerIntegrationTest {
     }
 
     private String authenticateAndGetJwtToken(String usernameOrEmail, String password) {
-        LoginRequest loginRequest = new LoginRequest(usernameOrEmail, password);
+        LoginCommand loginRequest = new LoginCommand(usernameOrEmail, password);
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<LoginCommand> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<AuthResponse> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/api/login", request, AuthResponse.class);

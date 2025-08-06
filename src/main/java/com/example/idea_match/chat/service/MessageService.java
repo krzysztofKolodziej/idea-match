@@ -2,7 +2,7 @@ package com.example.idea_match.chat.service;
 
 import com.example.idea_match.chat.kafka.KafkaSender;
 import com.example.idea_match.chat.dto.ChatMessageResponse;
-import com.example.idea_match.chat.dto.SendMessageRequest;
+import com.example.idea_match.chat.command.SendMessageCommand;
 import com.example.idea_match.chat.exceptions.ChatMessageException;
 import com.example.idea_match.chat.mapper.ChatMessageMapper;
 import com.example.idea_match.chat.model.ChatMessage;
@@ -25,8 +25,8 @@ public class MessageService {
     private final ChatMessageMapper chatMessageMapper;
     private final KafkaSender kafkaSender;
 
-    public void sendMessage(SendMessageRequest request, String senderId, String senderUsername) {
-        ChatMessage message = chatMessageMapper.toEntity(request, senderId, senderUsername);
+    public void sendMessage(SendMessageCommand command, String senderId, String senderUsername) {
+        ChatMessage message = chatMessageMapper.toEntity(command, senderId, senderUsername);
 
         Optional.ofNullable(message).orElseThrow(ChatMessageException::new);
 

@@ -4,12 +4,14 @@ import com.example.idea_match.idea.exceptions.IdeaAccessDeniedException;
 import com.example.idea_match.idea.exceptions.IdeaNotFoundException;
 import com.example.idea_match.shared.error.ErrorRespond;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice(basePackages = "com.example.idea_match.idea")
+@Order(1)
 @Slf4j
 public class IdeaExceptionHandler {
 

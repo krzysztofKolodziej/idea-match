@@ -1,6 +1,6 @@
 package com.example.idea_match.user.controller;
 
-import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.command.RegisterUserCommand;
 import com.example.idea_match.user.service.TokenService;
 import com.example.idea_match.user.service.UserRegistrationService;
 import lombok.AllArgsConstructor;
@@ -18,8 +18,8 @@ public class UserRegistrationController {
     private TokenService tokenService;
 
     @PostMapping("/registration")
-    public ResponseEntity<Void> userRegistration(@RequestBody @Valid AddUserCommand addUserCommand) {
-        userRegistration.userRegistration(addUserCommand);
+    public ResponseEntity<Void> userRegistration(@RequestBody @Valid RegisterUserCommand registerUserCommand) {
+        userRegistration.userRegistration(registerUserCommand);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

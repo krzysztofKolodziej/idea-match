@@ -1,5 +1,7 @@
 package com.example.idea_match.chat.service;
 
+import com.example.idea_match.chat.command.MarkMessageDeliveredCommand;
+import com.example.idea_match.chat.command.MarkMessageReadCommand;
 import com.example.idea_match.chat.dto.ChatMessageResponse;
 import com.example.idea_match.chat.exceptions.NotFoundMessageException;
 import com.example.idea_match.chat.mapper.ChatMessageMapper;
@@ -74,7 +76,7 @@ class MessageStatusServiceTest {
         when(chatMessageMapper.toResponse(any(ChatMessage.class)))
                 .thenReturn(testResponse);
 
-        messageStatusService.markMessageAsRead("message-id", "recipient-id");
+        messageStatusService.markMessageAsRead(new MarkMessageReadCommand("message-id"), "recipient-id");
 
         ArgumentCaptor<ChatMessage> messageCaptor = ArgumentCaptor.forClass(ChatMessage.class);
         verify(chatMessageRepository).save(messageCaptor.capture());
@@ -96,7 +98,7 @@ class MessageStatusServiceTest {
         when(chatMessageRepository.findById("invalid-id"))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> messageStatusService.markMessageAsRead("invalid-id", "recipient-id"))
+        assertThatThrownBy(() -> messageStatusService.markMessageAsRead(new MarkMessageReadCommand("invalid-id"), "recipient-id"))
                 .isInstanceOf(NotFoundMessageException.class);
 
         verify(chatMessageRepository, never()).save(any());
@@ -109,7 +111,7 @@ class MessageStatusServiceTest {
         when(chatMessageRepository.findById("message-id"))
                 .thenReturn(Optional.of(testMessage));
 
-        assertThatThrownBy(() -> messageStatusService.markMessageAsRead("message-id", "wrong-user-id"))
+        assertThatThrownBy(() -> messageStatusService.markMessageAsRead(new MarkMessageReadCommand("message-id"), "wrong-user-id"))
                 .isInstanceOf(NotFoundMessageException.class);
 
         verify(chatMessageRepository, never()).save(any());
@@ -128,7 +130,7 @@ class MessageStatusServiceTest {
         when(chatMessageMapper.toResponse(any(ChatMessage.class)))
                 .thenReturn(testResponse);
 
-        messageStatusService.markMessageAsDelivered("message-id");
+        messageStatusService.markMessageAsDelivered(new MarkMessageDeliveredCommand("message-id"));
 
         ArgumentCaptor<ChatMessage> messageCaptor = ArgumentCaptor.forClass(ChatMessage.class);
         verify(chatMessageRepository).save(messageCaptor.capture());
@@ -150,7 +152,7 @@ class MessageStatusServiceTest {
         when(chatMessageRepository.findById("invalid-id"))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> messageStatusService.markMessageAsDelivered("invalid-id"))
+        assertThatThrownBy(() -> messageStatusService.markMessageAsDelivered(new MarkMessageDeliveredCommand("invalid-id")))
                 .isInstanceOf(NotFoundMessageException.class);
 
         verify(chatMessageRepository, never()).save(any());
@@ -170,7 +172,7 @@ class MessageStatusServiceTest {
         when(chatMessageMapper.toResponse(any(ChatMessage.class)))
                 .thenReturn(testResponse);
 
-        messageStatusService.markMessageAsDelivered("message-id");
+        messageStatusService.markMessageAsDelivered(new MarkMessageDeliveredCommand("message-id"));
 
         ArgumentCaptor<ChatMessage> messageCaptor = ArgumentCaptor.forClass(ChatMessage.class);
         verify(chatMessageRepository).save(messageCaptor.capture());
@@ -195,7 +197,7 @@ class MessageStatusServiceTest {
         when(chatMessageMapper.toResponse(any(ChatMessage.class)))
                 .thenReturn(testResponse);
 
-        messageStatusService.markMessageAsRead("message-id", "recipient-id");
+        messageStatusService.markMessageAsRead(new MarkMessageReadCommand("message-id"), "recipient-id");
 
         ArgumentCaptor<ChatMessage> messageCaptor = ArgumentCaptor.forClass(ChatMessage.class);
         verify(chatMessageRepository).save(messageCaptor.capture());

@@ -1,7 +1,9 @@
 package com.example.idea_match.user.service;
 
 import com.example.idea_match.shared.security.auth.CustomUserDetails;
-import com.example.idea_match.user.dto.LoginRequest;
+import com.example.idea_match.user.command.LoginCommand;
+import com.example.idea_match.user.command.ForgotPasswordCommand;
+import com.example.idea_match.user.command.ResetPasswordCommand;
 import com.example.idea_match.user.event.PasswordResetCompletedEvent;
 import com.example.idea_match.user.event.PasswordResetRequestedEvent;
 import com.example.idea_match.user.exceptions.InvalidTokenException;
@@ -34,11 +36,11 @@ public class UserAuthenticationService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final TokenService tokenService;
 
-    public String login(LoginRequest loginRequest) {
+    public String login(LoginCommand loginCommand) {
         Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.usernameOrEmail(),
-                        loginRequest.password())
+                        loginCommand.usernameOrEmail(),
+                        loginCommand.password())
         );
 
         CustomUserDetails userDetails = (CustomUserDetails) authenticate.getPrincipal();
@@ -48,8 +50,8 @@ public class UserAuthenticationService {
     }
 
     @Transactional
-    public void initiatePasswordReset(String email) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
+    public void initiatePasswordReset(ForgotPasswordCommand command) {
+        Optional<User> userOpt = userRepository.findByEmail(command.email());
         
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -67,22 +69,22 @@ public class UserAuthenticationService {
                 )
             );
             
-            log.info("Password reset initiated for user: {}", email);
+            log.info("Password reset initiated for user: {}", command.email());
         } else {
-            log.warn("Password reset attempted for non-existent email: {}", email);
+            log.warn("Password reset attempted for non-existent email: {}", command.email());
         }
     }
 
     @Transactional
-    public void resetPassword(String token, String newPassword) {
-        User user = userRepository.findByPasswordResetToken(token)
+    public void resetPassword(ResetPasswordCommand command) {
+        User user = userRepository.findByPasswordResetToken(command.token())
             .orElseThrow(() -> new InvalidTokenException("Invalid or expired reset token"));
         
         if (user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new InvalidTokenException("Reset token has expired");
         }
         
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(command.newPassword()));
         user.setPasswordResetToken(null);
         user.setPasswordResetTokenExpiry(null);
         userRepository.save(user);

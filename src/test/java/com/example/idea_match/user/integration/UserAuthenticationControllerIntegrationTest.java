@@ -1,6 +1,6 @@
 package com.example.idea_match.user.integration;
 
-import com.example.idea_match.user.dto.LoginRequest;
+import com.example.idea_match.user.command.LoginCommand;
 import com.example.idea_match.user.model.Role;
 import com.example.idea_match.user.model.User;
 import com.example.idea_match.user.repository.UserRepository;
@@ -84,11 +84,11 @@ class UserAuthenticationControllerIntegrationTest {
     @Test
     @DisplayName("Should login successfully with username")
     void shouldLoginSuccessfullyWithUsername() {
-        LoginRequest loginRequest = new LoginRequest("johndoe", "password123");
+        LoginCommand loginRequest = new LoginCommand("johndoe", "password123");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<LoginCommand> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/api/login", request, String.class);
@@ -101,11 +101,11 @@ class UserAuthenticationControllerIntegrationTest {
     @Test
     @DisplayName("Should login successfully with email")
     void shouldLoginSuccessfullyWithEmail() {
-        LoginRequest loginRequest = new LoginRequest("john@example.com", "password123");
+        LoginCommand loginRequest = new LoginCommand("john@example.com", "password123");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<LoginCommand> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/api/login", request, String.class);
@@ -118,11 +118,11 @@ class UserAuthenticationControllerIntegrationTest {
     @Test
     @DisplayName("Should return unauthorized for invalid credentials")
     void shouldReturnUnauthorizedForInvalidCredentials() {
-        LoginRequest loginRequest = new LoginRequest("johndoe", "wrongpassword");
+        LoginCommand loginRequest = new LoginCommand("johndoe", "wrongpassword");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<LoginCommand> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/api/login", request, String.class);
@@ -133,11 +133,11 @@ class UserAuthenticationControllerIntegrationTest {
     @Test
     @DisplayName("Should return unauthorized for non-existent user")
     void shouldReturnUnauthorizedForNonExistentUser() {
-        LoginRequest loginRequest = new LoginRequest("nonexistent", "password123");
+        LoginCommand loginRequest = new LoginCommand("nonexistent", "password123");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<LoginCommand> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/api/login", request, String.class);
@@ -165,11 +165,11 @@ class UserAuthenticationControllerIntegrationTest {
         
         userRepository.save(disabledUser);
 
-        LoginRequest loginRequest = new LoginRequest("janesmith", "password456");
+        LoginCommand loginRequest = new LoginCommand("janesmith", "password456");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<LoginRequest> request = new HttpEntity<>(loginRequest, headers);
+        HttpEntity<LoginCommand> request = new HttpEntity<>(loginRequest, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "http://localhost:" + port + "/api/login", request, String.class);

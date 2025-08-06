@@ -1,6 +1,6 @@
 package com.example.idea_match.user.service.registration;
 
-import com.example.idea_match.user.command.AddUserCommand;
+import com.example.idea_match.user.command.RegisterUserCommand;
 import com.example.idea_match.user.event.OnRegistrationCompleteEvent;
 import com.example.idea_match.user.exceptions.UserAlreadyExistsException;
 import com.example.idea_match.user.model.Role;
@@ -48,20 +48,18 @@ class UserRegistrationServiceTest {
     @InjectMocks
     private UserRegistrationService userRegistrationService;
 
-    private AddUserCommand validCommand;
+    private RegisterUserCommand validCommand;
     private User mappedUser;
 
     @BeforeEach
     void setUp() {
-        validCommand = new AddUserCommand(
-                "John",
-                "Doe",
+        validCommand = new RegisterUserCommand(
                 "johndoe",
                 "john@example.com",
-                "+48123456789",
-                "Warsaw",
-                "Software developer",
-                "password123"
+                "password123",
+                "John",
+                "Doe",
+                "+48123456789"
         );
 
         mappedUser = User.builder()
@@ -86,7 +84,7 @@ class UserRegistrationServiceTest {
                 validCommand.email(),
                 validCommand.phoneNumber()
         )).thenReturn(false);
-        when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
+        when(userMapper.commandToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
                 .thenReturn(mappedUser);
@@ -119,7 +117,7 @@ class UserRegistrationServiceTest {
                 .isInstanceOf(UserAlreadyExistsException.class)
                 .hasMessage("Provided user, email or phone number exist");
 
-        verify(userMapper, never()).dtoToEntity(any());
+        verify(userMapper, never()).commandToEntity(any());
         verify(userRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -129,7 +127,7 @@ class UserRegistrationServiceTest {
         // given
         when(userRepository.existsByUsernameOrEmailOrPhoneNumber(anyString(), anyString(), anyString()))
                 .thenReturn(false);
-        when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
+        when(userMapper.commandToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode("password123")).thenReturn("super-secure-hash");
         when(tokenService.createVerificationToken(any(User.class), any(LocalDateTime.class)))
                 .thenReturn(mappedUser);
@@ -149,7 +147,7 @@ class UserRegistrationServiceTest {
         // given
         when(userRepository.existsByUsernameOrEmailOrPhoneNumber(anyString(), anyString(), anyString()))
                 .thenReturn(false);
-        when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
+        when(userMapper.commandToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         User userWithToken = User.builder()
                 .verificationToken("test-token-uuid")
@@ -175,7 +173,7 @@ class UserRegistrationServiceTest {
         // given
         when(userRepository.existsByUsernameOrEmailOrPhoneNumber(anyString(), anyString(), anyString()))
                 .thenReturn(false);
-        when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
+        when(userMapper.commandToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         User userWithToken = User.builder()
                 .firstName("John")
@@ -213,7 +211,7 @@ class UserRegistrationServiceTest {
         LocalDateTime beforeTest = LocalDateTime.now();
         when(userRepository.existsByUsernameOrEmailOrPhoneNumber(anyString(), anyString(), anyString()))
                 .thenReturn(false);
-        when(userMapper.dtoToEntity(validCommand)).thenReturn(mappedUser);
+        when(userMapper.commandToEntity(validCommand)).thenReturn(mappedUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         User userWithToken = User.builder()
                 .tokenExpirationTime(LocalDateTime.now().plusHours(24))
