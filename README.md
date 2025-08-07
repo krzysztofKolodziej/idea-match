@@ -1,248 +1,268 @@
 # IdeaMatch
 
+**Idea Match – where ideas meet makers.**
+
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ## Project Overview
-IdeaMatch is a backend application designed to connect innovators with collaborators. The system allows users to post and search for project offers using advanced filtering, securely register and authenticate accounts, and communicate through real-time chat. Built with Java 21 and Spring Boot, the backend features robust security (JWT, email verification), comprehensive user and profile management, and scalable chat functionality powered by WebSocket and MongoDB. Technologies like PostgreSQL, Redis, and Apache Kafka support reliable data storage, caching, and efficient message streaming between users.
+IdeaMatch is a backend application that connects innovators with collaborators through a platform for idea sharing and real-time communication. The system enables users to create, discover, and collaborate on innovative projects using advanced filtering capabilities, secure authentication, and integrated chat functionality.
+
+Built with Java 21 and Spring Boot 3.4.5, the application follows clean architecture principles with command pattern implementation, providing scalable real-time messaging through WebSocket and Apache Kafka, robust JWT-based security with email verification, and efficient data management using PostgreSQL and MongoDB.
 
 ## Key Features
 
-### User Management System
-- **Secure Registration & Authentication**: JWT-based authentication with email verification
-- **Profile Management**: Complete user profile system with customizable information
-- **Password Security**: Advanced password validation with reset functionality via email
-- **Role-Based Access Control**: Flexible user roles and permissions system
-- **Account Verification**: Email-based account activation and verification
+### 🔐 User Management System
+- **Secure Authentication**: JWT-based stateless authentication with AWS SES email verification
+- **Profile Management**: Comprehensive user profiles with customizable fields
+- **Advanced Security**: BCrypt password hashing with strength validation using Passay
+- **Password Recovery**: Email-based password reset workflow with secure token generation
 
-### Real-Time Chat System
-- **Private Messaging**: Direct 1:1 conversations between users
-- **Group Chat**: Multi-user chat rooms with administrative controls
-- **Message Status Tracking**: Read receipts, delivery confirmations, and message history
-- **File Attachments**: Support for file sharing with thumbnails
-- **WebSocket Integration**: Real-time message delivery using WebSocket connections
-- **Message Persistence**: Chat history stored in MongoDB for reliable message retrieval
 
-### Advanced Features
-- **Real-time Notifications**: Instant notifications for messages and system events
-- **Message Search**: Full-text search capabilities across chat history
-- **User Presence**: Online/offline status tracking
-- **Moderation Tools**: Admin controls for managing chat rooms and users
+### 💡 Idea Management System
+- **CRUD Operations**: Full lifecycle management for project ideas
+- **Advanced Filtering**: RSQL-based dynamic query system with pagination
+- **Status Tracking**: Comprehensive idea lifecycle (DRAFT → ACTIVE → COMPLETED)
+- **Categorization**: Technology, Business, Creative, Social Impact, and Education categories
 
-## Tech Stack
+### 💬 Real-Time Chat System
+- **WebSocket Communication**: STOMP protocol for instant messaging
+- **Message Persistence**: MongoDB storage for chat history and message tracking
+- **Status Tracking**: Comprehensive message states (SENT → DELIVERED → READ)
+- **User Presence**: Connection status tracking with session management
+- **Scalable Architecture**: Apache Kafka integration for message distribution
+- **Security**: WebSocket authentication interceptors with JWT validation
 
-### Backend Framework
-- **Java 21**: Modern Java features and performance improvements
-- **Spring Boot 3.4.5**: Latest Spring Boot with enhanced features
-- **Spring Security**: Comprehensive security framework
-- **Spring Data JPA**: Database abstraction layer
-- **Spring Data MongoDB**: NoSQL document database integration
-- **Spring WebSocket**: Real-time communication support
+## 🛠️ Tech Stack
 
-### Messaging & Communication
-- **Apache Kafka**: High-performance message streaming
-- **WebSocket**: Real-time bidirectional communication
-- **STOMP Protocol**: Simple Text Oriented Messaging Protocol
+### Core Framework
+- **Java 21**: Modern language features with enhanced performance and syntax improvements
+- **Spring Boot 3.4.5**: Main application framework with auto-configuration and embedded server
+- **Spring Security 6.x**: Comprehensive authentication, authorization, and security filters
+- **Spring Data JPA 3.x**: Database abstraction layer with repository pattern implementation
+- **Spring WebSocket 6.x**: Real-time communication support with STOMP protocol
 
-### Database Systems
-- **PostgreSQL**: Primary relational database for user data
-- **MongoDB**: Document database for chat messages and rooms
-- **Redis**: In-memory caching and session management
+### Databases & Persistence
+- **PostgreSQL 15**: Primary relational database for user accounts and idea management
+- **MongoDB**: Document database optimized for chat messages and real-time data
+- **Redis 7**: In-memory data store for caching and session management
 
-### Security & Authentication
-- **JWT (JSON Web Tokens)**: Stateless authentication
-- **Spring Security**: Security configuration and filters
-- **Password Validation**: Custom password strength validation
-- **Email Verification**: Secure account activation process
+### Messaging & Real-Time Communication
+- **Apache Kafka 4.0.0**: High-performance message streaming and event distribution
+- **WebSocket with STOMP**: Bidirectional real-time communication protocol
+- **Custom Message Handlers**: WebSocket authentication and message routing
 
-### Cloud Services
-- **AWS SES**: Email service for notifications and verification
-- **Docker**: Containerization for development and deployment
+### Security & Integration
+- **JWT 4.5.0**: Stateless authentication with token-based security
+- **AWS SES 2.31.68**: Cloud email service for verification and notifications
+- **Passay 1.6.6**: Advanced password strength validation library
+- **BCrypt**: Industry-standard password hashing algorithm
 
-### Development Tools
-- **Lombok**: Reduce boilerplate code
-- **MapStruct**: Type-safe bean mapping
-- **Swagger/OpenAPI**: API documentation
-- **Maven**: Build automation and dependency management
+### Development & Testing Tools
+- **Maven 3.8+**: Build automation, dependency management, and project lifecycle
+- **Lombok**: Annotation-based boilerplate code reduction
+- **MapStruct 1.6.3**: Compile-time type-safe bean mapping between DTOs and entities
+- **SpringDoc OpenAPI 2.8.5**: Automated API documentation generation
+- **TestContainers 1.20.3**: Integration testing with containerized databases
+- **Docker**: Containerization for development environment setup
 
-## Installation and Running
+## 🚀 Getting Started
 
 ### Prerequisites
-- Java 21 or higher
-- Maven 3.8+
-- Docker and Docker Compose
-- PostgreSQL database
-- MongoDB database
-- Redis server
+- **Java 21** or higher
+- **Maven 3.8+** for build management
+- **Docker & Docker Compose** for infrastructure services
+- **Git** for version control
 
-### Environment Setup
-1. Copy environment configuration:
+### Quick Start
+1. **Clone the repository**:
    ```bash
-   cp .env.example .env
-   ```
-
-2. Update environment variables in `.env`:
-   ```env
-   POSTGRES_PASSWORD=your_postgres_password
-   JWT_SECRET=your_jwt_secret_key
-   AWS_ACCESS_KEY_ID=your_aws_access_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   ```
-
-### Database Setup
-Start the required services using Docker Compose:
-```bash
-docker-compose up -d
-```
-
-This will start:
-- PostgreSQL database (port 5432)
-- MongoDB database (port 27017)  
-- Redis server (port 6379)
-- Apache Kafka (port 9094)
-
-### Build and Run
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
+   git clone <https://github.com/krzysztofKolodziej/idea-match.git>
    cd idea-match
    ```
 
-2. Build the project:
+2. **Set up environment variables**:
    ```bash
-   mvn clean install
+   # Create environment file with required variables
+   export POSTGRES_PASSWORD=your_secure_password
+   export JWT_SECRET=your_jwt_secret_key_min_256_bits
+   export AWS_ACCESS_KEY_ID=your_aws_access_key
+   export AWS_SECRET_ACCESS_KEY=your_aws_secret_key
    ```
 
-3. Run the application:
+3. **Start infrastructure services**:
    ```bash
+   docker-compose up -d
+   ```
+   This starts:
+   - **PostgreSQL** (port 5432) - User and idea data
+   - **MongoDB** (port 27017) - Chat messages  
+   - **Redis** (port 6379) - Caching layer
+   - **Apache Kafka** (port 9094) - Message streaming
+
+4. **Build and run the application**:
+   ```bash
+   mvn clean install
    mvn spring-boot:run
    ```
 
-The application will start on port 8080 by default.
+The application will be available at `http://localhost:8080`
 
-## API Endpoints
+### Development Profiles
+- **dev** (default): Development mode with detailed logging
+- **test**: Testing environment with H2 in-memory database
 
-### User Registration & Authentication
-- `POST /api/registration` - Register a new user account
-- `GET /api/verify-email?token={token}` - Verify email address
-- `POST /api/login` - User authentication
-- `POST /api/auth/forgot-password` - Request password reset
-- `GET /api/auth/reset-password?token={token}` - Validate reset token
-- `POST /api/auth/reset-password` - Reset user password
+## 📡 API Documentation
+
+### Authentication Endpoints
+```http
+POST /api/registration              # Register new user account
+GET  /api/verify-email?token={}     # Verify email address with token
+POST /api/login                     # User authentication
+POST /api/auth/forgot-password      # Request password reset
+GET  /api/auth/reset-password?token={}  # Validate reset token
+POST /api/auth/reset-password       # Reset user password
+```
 
 ### User Profile Management
-- `GET /api/user/profile` - Get user profile information
-- `PUT /api/user/profile` - Update user profile
-- `POST /api/user/change-password` - Change user password
+```http
+GET  /api/user/profile              # Get user profile information
+PUT  /api/user/profile              # Update user profile
+POST /api/user/change-password      # Change user password
+```
 
-### Chat System (WebSocket)
-- `CONNECT /ws` - Establish WebSocket connection
-- `SEND /app/chat.send-message` - Send public message
-- `SEND /app/chat.private-message` - Send private message
-- `SEND /app/chat.join-room` - Join chat room
-- `SEND /app/chat.add-user` - Add user to chat
+### Idea Management
+```http
+GET    /api/ideas                   # Get paginated and filtered ideas
+GET    /api/ideas/{id}              # Get detailed idea information
+POST   /api/account/idea            # Create new idea (authenticated)
+PATCH  /api/account/idea/{id}       # Update existing idea (owner only)
+DELETE /api/account/idea/{id}       # Delete idea (owner only)
+```
 
-### WebSocket Subscriptions
-- `SUBSCRIBE /topic/public` - Public chat messages
-- `SUBSCRIBE /topic/room/{roomId}` - Room-specific messages
-- `SUBSCRIBE /user/queue/messages` - Private messages
+### WebSocket Communication
+```javascript
+// Connection
+CONNECT /ws
 
-## Database Schema
+// Message Operations
+SEND /app/sendMessage               # Send message
+SEND /app/markAsRead                # Mark message as read
+SEND /app/markAsDelivered          # Mark message as delivered
+SEND /app/connect                   # Handle user connection
 
-### PostgreSQL Tables
-- **idea_match_user**: User accounts and profile information
-- **user_roles**: Role assignments and permissions
+// Subscriptions
+SUBSCRIBE /topic/public             # Public messages
+SUBSCRIBE /user/queue/messages      # Private messages
+```
+
+### Interactive API Documentation
+Once the application is running, visit:
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI Spec**: `http://localhost:8080/v3/api-docs`
+
+## 🗄️ Database Architecture
+
+### PostgreSQL Schema
+- **`users`**: User accounts, profiles, authentication data, and project relationships
+- **`ideas`**: Project ideas with status, category, description, and collaboration details
+- **`user_ideas`**: Many-to-many relationship table for collaborations
+- **`roles`**: User role definitions and permissions
+- **`verification_tokens`**: Email verification and password reset tokens
 
 ### MongoDB Collections
-- **chat_rooms**: Chat room information and participant management
-- **chat_messages**: Message history with full metadata
-- **message_attachments**: File attachments and media
+- **`chatMessages`**: Message history with content, status, timestamps, and user references
+- **`messageStatus`**: Message delivery and read tracking for real-time status updates
+- **Connection tracking**: User presence and WebSocket session management
 
-## Security Features
+## 🔒 Security & Architecture
 
-### Authentication
-- JWT-based stateless authentication
-- Token blacklisting for secure logout
-- Password strength validation using Passay library
-- Email verification for account activation
+### Authentication & Authorization
+- **JWT Tokens**: Stateless authentication with configurable expiration (30 days default)
+- **Token Blacklisting**: Secure logout with Redis-backed token invalidation
+- **Password Security**: BCrypt hashing with Passay strength validation rules
+- **Email Verification**: AWS SES integration for account activation workflow
+- **Role-Based Access**: Granular permissions with USER/ADMIN role hierarchy
+- **WebSocket Security**: Custom authentication interceptors for real-time communication
 
-### Authorization
-- Role-based access control
-- WebSocket authentication interceptor
-- API endpoint protection
-- Resource-level security
+### Data Protection & Validation
+- **Input Sanitization**: Jakarta Bean Validation with custom constraint validators
+- **SQL Injection Prevention**: JPA/Hibernate query parameterization
+- **CSRF Protection**: Spring Security configuration with token-based validation
+- **Secure Headers**: Security headers configuration for API protection
 
-### Data Protection
-- Password hashing with BCrypt
-- Secure token generation
-- Input validation and sanitization
-- SQL injection prevention
+### Architecture Patterns
+- **Command Pattern**: Encapsulated request handling with validation (LoginCommand, SendMessageCommand)
+- **Repository Pattern**: Data access abstraction with Spring Data JPA and MongoDB
+- **Event-Driven Architecture**: Application events for registration and password reset workflows
+- **Clean Architecture**: Separation of concerns between controllers, services, and repositories
 
-## Testing
+## 🧪 Testing Strategy
 
-### Run Tests
+### Running Tests
 ```bash
-# Unit tests
+# Unit tests only
 mvn test
 
-# Integration tests
+# Integration tests with TestContainers
 mvn failsafe:integration-test
+
+# All tests with coverage
+mvn clean test integration-test
 ```
 
-### Test Coverage
-The project includes comprehensive testing:
-- **Unit Tests**: Service layer and business logic testing
-- **Integration Tests**: Full application context testing
-- **Controller Tests**: REST API endpoint testing
-- **Security Tests**: Authentication and authorization testing
-- **WebSocket Tests**: Real-time communication testing
+### Test Architecture
+- **Unit Tests**: Service layer business logic and validation rules
+- **Integration Tests**: Full application context with TestContainers (PostgreSQL)
+- **Security Tests**: Authentication flows and authorization checks
+- **WebSocket Tests**: Real-time communication and message handling
+- **Controller Tests**: REST API endpoints with MockMvc
 
-## Development Profiles
+### Test Configuration
+- **TestContainers**: Dockerized PostgreSQL for integration testing
+- **MockMvc**: Spring MVC testing framework for controllers
+- **Test Profiles**: Isolated test configuration with H2 fallback
 
-### Available Profiles
-- **dev** (default): Development environment with debug logging
-- **test**: Testing environment with H2 in-memory database
-- **prod**: Production environment with optimized settings
+## 📊 Monitoring & Error Handling
 
-### Profile Configuration
-Activate specific profile:
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
+### Comprehensive Error Management
+- **GlobalErrorHandler**: Centralized exception processing with HTTP status mapping
+- **Custom Exceptions**: Domain-specific error types (UserNotFoundException, IdeaAccessDeniedException)
+- **Validation Errors**: Jakarta Bean Validation with detailed field-level messaging
+- **WebSocket Errors**: Real-time error handling with custom exception handlers
 
-## Error Handling
-
-The application provides comprehensive error handling:
-- **Global Exception Handler**: Centralized error processing
-- **Custom Exceptions**: Domain-specific error types
-- **Validation Errors**: Detailed field-level error messages
-- **Security Errors**: Authentication and authorization failures
-
-Example error response:
+### Example Error Response
 ```json
 {
   "status": "BAD_REQUEST",
   "message": "Email address is already registered",
-  "timestamp": "2024-01-15T10:30:00Z"
+  "timestamp": "2025-08-07T10:30:00Z",
+  "path": "/api/registration"
 }
 ```
 
-## Monitoring and Logging
+### Application Monitoring
+- **Structured Logging**: Configurable log levels with Hibernate SQL logging
+- **Database Monitoring**: Connection pool and query performance tracking
 
-### Application Logging
-- **Structured Logging**: JSON format for production
-- **Log Levels**: Configurable logging levels per component
-- **Database Logging**: SQL query logging for development
-- **WebSocket Logging**: Connection and message tracking
+## 🤝 Contributing
 
-## Contributing
+### Development Guidelines
+- **Code Style**: Java conventions with Lombok for boilerplate reduction
+- **Testing**: Comprehensive unit and integration test coverage
+- **Documentation**: OpenAPI documentation for all public endpoints
+- **Security**: Follow OWASP security guidelines and best practices
 
-### Code Style
-- Follow Java coding conventions
-- Use Lombok for boilerplate reduction
-- Implement comprehensive testing
-- Document public APIs
-
-### Pull Request Process
+### Development Workflow
 1. Fork the repository
-2. Create feature branch
-3. Implement changes with tests
-4. Update documentation
-5. Submit pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Implement changes with comprehensive tests
+4. Update documentation and API specs
+5. Submit a pull request with detailed description
+
+### Code Quality Standards
+- **Clean Architecture**: Maintain separation between layers
+- **Command Pattern**: Use command objects for request handling
+- **Exception Handling**: Implement proper error handling and logging
+- **Security First**: Validate all inputs and secure all endpoints
