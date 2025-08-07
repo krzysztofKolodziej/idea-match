@@ -51,7 +51,7 @@ public class Idea {
 
     @Column(nullable = false)
     @Builder.Default
-    private LocalDateTime cratedDate = LocalDateTime.now();
+    private LocalDateTime createdDate = LocalDateTime.now();
 
     private LocalDateTime expectedStartDate;
 }

@@ -33,8 +33,11 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/account/**", "/api/auth/**").authenticated()
-                        .anyRequest().permitAll());
+                        .requestMatchers("/api/registration", "/api/verify-email", "/api/login", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/api/account/**", "/api/user/**", "/api/ideas/**", "/api/chat/**").authenticated()
+                        .anyRequest().denyAll());
 
         http.addFilterBefore(
                 new JwtAuthorizationFilter(authenticationManager, userDetailsService, tokenBlacklistService, jwtUtils),
