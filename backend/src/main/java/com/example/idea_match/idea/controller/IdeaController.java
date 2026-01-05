@@ -10,6 +10,7 @@ import com.example.idea_match.shared.filter.PaginationRequest;
 import com.example.idea_match.shared.security.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.bson.json.JsonObject;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
