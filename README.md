@@ -84,11 +84,9 @@ Built with Java 21 and Spring Boot 3.4.5, the application follows clean architec
 
 2. **Set up environment variables**:
    ```bash
-   # Create environment file with required variables
-   export POSTGRES_PASSWORD=your_secure_password
-   export JWT_SECRET=your_jwt_secret_key_min_256_bits
-   export AWS_ACCESS_KEY_ID=your_aws_access_key
-   export AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   # Create a local environment file from the template
+   cp .env.example .env
+   # Then edit .env with your values
    ```
 
 3. **Start infrastructure services**:
